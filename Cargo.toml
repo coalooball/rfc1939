@@ -1,0 +1,13 @@
+[package]
+name = "rfc1939"
+version = "0.1.0"
+license = "MIT OR Apache-2.0"
+edition = "2021"
+readme = "README.md"
+description = "Parsing RFC 1939 (i.e. POP3) data streams"
+repository = "https://github.com/coalooball/rfc1939"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+nom = "7.1.3"
