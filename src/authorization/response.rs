@@ -1,5 +1,5 @@
 use crate::common::*;
-use crate::types::*;
+use crate::types::response::*;
 use nom::IResult;
 
 fn greeting_parser(s: &[u8]) -> IResult<&[u8], Greeting> {
