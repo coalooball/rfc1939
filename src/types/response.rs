@@ -4,62 +4,62 @@ use crate::common::StatusIndicator;
 /// StatusIndicator, Status Indicator stand for +OK/-ERR
 /// Vec<u8>, message
 #[derive(Debug, PartialEq)]
-pub struct Greeting {
+pub struct Greeting<'a> {
     pub status_indicator: StatusIndicator,
-    pub message: Vec<u8>,
+    pub message: &'a [u8],
 }
 
 /// Quit
 /// StatusIndicator, Status Indicator stand for +OK/-ERR
 /// Vec<u8>, message
 #[derive(Debug, PartialEq)]
-pub struct Quit {
+pub struct Quit<'a> {
     pub status_indicator: StatusIndicator,
-    pub message: Vec<u8>,
+    pub message: &'a [u8],
 }
 
 #[derive(Debug, PartialEq)]
-pub struct OneLineTwoParts {
+pub struct OneLineTwoParts<'a> {
     pub left: StatusIndicator,
-    pub right: Vec<u8>,
+    pub right: &'a [u8],
 }
 
-impl Default for OneLineTwoParts {
+impl Default for OneLineTwoParts<'_> {
     fn default() -> Self {
         OneLineTwoParts {
             left: StatusIndicator::OK,
-            right: Vec::new(),
+            right: &[],
         }
     }
 }
 
-impl Default for Quit {
+impl Default for Quit<'_> {
     fn default() -> Self {
         Quit {
             status_indicator: StatusIndicator::OK,
-            message: Vec::new(),
+            message: &[],
         }
     }
 }
 
-impl Default for Greeting {
+impl Default for Greeting<'_> {
     fn default() -> Self {
         Greeting {
             status_indicator: StatusIndicator::OK,
-            message: Vec::new(),
+            message: &[],
         }
     }
 }
 
-pub trait OneLine: Default {
+pub trait OneLine<'a>: Default {
     fn status_indicator(&self) -> &StatusIndicator;
     fn set_status_indicator(&mut self, si: StatusIndicator);
 
     fn message(&self) -> &[u8];
-    fn set_message(&mut self, message: Vec<u8>);
+    fn set_message(&mut self, message: &'a [u8]);
 }
 
-impl OneLine for Greeting {
+impl<'a> OneLine<'a> for Greeting<'a> {
     fn status_indicator(&self) -> &StatusIndicator {
         &self.status_indicator
     }
@@ -72,12 +72,12 @@ impl OneLine for Greeting {
         &self.message
     }
 
-    fn set_message(&mut self, message: Vec<u8>) {
+    fn set_message(&mut self, message: &'a [u8]) {
         self.message = message;
     }
 }
 
-impl OneLine for Quit {
+impl<'a> OneLine<'a> for Quit<'a> {
     fn status_indicator(&self) -> &StatusIndicator {
         &self.status_indicator
     }
@@ -90,12 +90,12 @@ impl OneLine for Quit {
         &self.message
     }
 
-    fn set_message(&mut self, message: Vec<u8>) {
+    fn set_message(&mut self, message: &'a [u8]) {
         self.message = message;
     }
 }
 
-impl OneLine for OneLineTwoParts {
+impl<'a> OneLine<'a> for OneLineTwoParts<'a> {
     fn status_indicator(&self) -> &StatusIndicator {
         &self.left
     }
@@ -108,7 +108,7 @@ impl OneLine for OneLineTwoParts {
         &self.right
     }
 
-    fn set_message(&mut self, message: Vec<u8>) {
+    fn set_message(&mut self, message: &'a [u8]) {
         self.right = message;
     }
 }
@@ -119,11 +119,11 @@ impl OneLine for OneLineTwoParts {
 /// usize, the size of the maildrop in octets
 /// Vec<u8>, message
 #[derive(Debug, PartialEq)]
-pub struct Stat {
+pub struct Stat<'a> {
     pub status_indicator: StatusIndicator,
     pub number_of_messages: usize,
     pub size_in_octets: usize,
-    pub message: Vec<u8>,
+    pub message: &'a [u8],
 }
 
 /// LIST [msg]
@@ -133,8 +133,8 @@ pub struct Stat {
 ///     right usize is size of the message in octets
 /// Vec<u8>, message
 #[derive(Debug, PartialEq)]
-pub struct List {
+pub struct List<'a> {
     pub status_indicator: StatusIndicator,
     pub informations: Vec<(usize, usize)>,
-    pub message: Vec<u8>,
+    pub message: &'a [u8],
 }

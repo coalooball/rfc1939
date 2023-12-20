@@ -8,16 +8,35 @@ use nom::{
     IResult,
 };
 
-pub(crate) fn stat_parser(s: &[u8]) -> IResult<&[u8], Stat> {
-    map(terminated(tag_no_case(b"STAT"), tag(b"\r\n")), |_| Stat)(s)
-}
-
+// ################################################################################
 /// STAT
 /// Arguments: none
 /// Examples:
 ///     C: STAT
+// ################################################################################
 pub fn stat(s: &[u8]) -> Option<Stat> {
     match stat_parser(s) {
+        Ok((_, x)) => Some(x),
+        Err(_) => None,
+    }
+}
+
+pub(crate) fn stat_parser(s: &[u8]) -> IResult<&[u8], Stat> {
+    map(terminated(tag_no_case(b"STAT"), tag(b"\r\n")), |_| Stat)(s)
+}
+
+// ################################################################################
+/// LIST [msg]
+/// Arguments:
+///     A message-number (optional)
+/// Restrictions:
+///     May only be given in the TRANSACTION state
+/// Examples:
+///     C: LIST
+///     C: LIST 2
+// ################################################################################
+pub fn list(s: &[u8]) -> Option<List> {
+    match list_parser(s) {
         Ok((_, x)) => Some(x),
         Err(_) => None,
     }
@@ -40,56 +59,46 @@ pub(crate) fn list_parser(s: &[u8]) -> IResult<&[u8], List> {
     )(s)
 }
 
-/// LIST [msg]
-/// Arguments:
-///     A message-number (optional)
-/// Restrictions:
-///     May only be given in the TRANSACTION state
-/// Examples:
-///     C: LIST
-///     C: LIST 2
-pub fn list(s: &[u8]) -> Option<List> {
-    match list_parser(s) {
-        Ok((_, x)) => Some(x),
-        Err(_) => None,
+#[cfg(test)]
+mod tests {
+    use super::*;
+    
+    #[test]
+    fn test_stat() {
+        assert_eq!(stat(b"stat\r\n"), Some(Stat));
+        assert_eq!(stat(b" stat"), None);
+        assert_eq!(stat(b"stat"), None);
     }
-}
 
-#[test]
-fn test_stat() {
-    assert_eq!(stat(b"stat\r\n"), Some(Stat));
-    assert_eq!(stat(b" stat"), None);
-    assert_eq!(stat(b"stat"), None);
-}
+    #[test]
+    fn test_list_parser() {
+        assert_eq!(
+            list_parser(b"LIST\r\n").unwrap().1,
+            List {
+                message_number: None
+            }
+        );
+        assert_eq!(
+            list_parser(b"LIST 123\r\n").unwrap().1,
+            List {
+                message_number: Some(123)
+            }
+        );
+    }
 
-#[test]
-fn test_list_parser() {
-    assert_eq!(
-        list_parser(b"LIST\r\n").unwrap().1,
-        List {
-            message_number: None
-        }
-    );
-    assert_eq!(
-        list_parser(b"LIST 123\r\n").unwrap().1,
-        List {
-            message_number: Some(123)
-        }
-    );
-}
-
-#[test]
-fn test_list() {
-    assert_eq!(
-        list(b"LIST\r\n").unwrap(),
-        List {
-            message_number: None
-        }
-    );
-    assert_eq!(
-        list(b"LIST 2222\r\n").unwrap(),
-        List {
-            message_number: Some(2222)
-        }
-    );
+    #[test]
+    fn test_list() {
+        assert_eq!(
+            list(b"LIST\r\n").unwrap(),
+            List {
+                message_number: None
+            }
+        );
+        assert_eq!(
+            list(b"LIST 2222\r\n").unwrap(),
+            List {
+                message_number: Some(2222)
+            }
+        );
+    }
 }

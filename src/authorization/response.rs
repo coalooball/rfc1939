@@ -2,12 +2,11 @@ use crate::common::*;
 use crate::types::response::*;
 use nom::IResult;
 
-fn greeting_parser(s: &[u8]) -> IResult<&[u8], Greeting> {
-    one_line_response_two_parts_parser::<Greeting>(s)
-}
-
+// ################################################################################
+/// Greeting
 /// Once the TCP connection has been opened by a POP3 client, the POP3
 /// server issues a one line greeting.
+// ################################################################################
 pub fn greeting(s: &[u8]) -> Option<Greeting> {
     match greeting_parser(s) {
         Ok((_, x)) => Some(x),
@@ -15,11 +14,14 @@ pub fn greeting(s: &[u8]) -> Option<Greeting> {
     }
 }
 
-fn quit_parser(s: &[u8]) -> IResult<&[u8], Quit> {
-    one_line_response_two_parts_parser::<Quit>(s)
+pub(crate) fn greeting_parser(s: &[u8]) -> IResult<&[u8], Greeting> {
+    one_line_response_two_parts_parser::<Greeting>(s)
 }
 
-/// The QUIT command when used in the AUTHORIZATION state:
+// ################################################################################
+/// Greeting
+/// The QUIT command when used in the AUTHORIZATION state
+// ################################################################################
 pub fn quit(s: &[u8]) -> Option<Quit> {
     match quit_parser(s) {
         Ok((_, x)) => Some(x),
@@ -27,35 +29,44 @@ pub fn quit(s: &[u8]) -> Option<Quit> {
     }
 }
 
-#[test]
-fn test_greeting_parser() {
-    assert_eq!(
-        greeting_parser(b"+OK POP3 server ready\r\n").unwrap().1,
-        Greeting {
-            status_indicator: StatusIndicator::OK,
-            message: b"POP3 server ready".to_vec()
-        }
-    )
+pub(crate) fn quit_parser(s: &[u8]) -> IResult<&[u8], Quit> {
+    one_line_response_two_parts_parser::<Quit>(s)
 }
 
-#[test]
-fn test_greeting() {
-    assert_eq!(
-        greeting(b"+OK POP3 server ready\r\n").unwrap(),
-        Greeting {
-            status_indicator: StatusIndicator::OK,
-            message: b"POP3 server ready".to_vec()
-        }
-    )
-}
+#[cfg(test)]
+mod tests {
+    use super::*;
+    
+    #[test]
+    fn test_greeting_parser() {
+        assert_eq!(
+            greeting_parser(b"+OK POP3 server ready\r\n").unwrap().1,
+            Greeting {
+                status_indicator: StatusIndicator::OK,
+                message: b"POP3 server ready"
+            }
+        )
+    }
 
-#[test]
-fn test_quit() {
-    assert_eq!(
-        quit(b"+OK dewey POP3 server signing off\r\n").unwrap(),
-        Quit {
-            status_indicator: StatusIndicator::OK,
-            message: b"dewey POP3 server signing off".to_vec()
-        }
-    )
+    #[test]
+    fn test_greeting() {
+        assert_eq!(
+            greeting(b"+OK POP3 server ready\r\n").unwrap(),
+            Greeting {
+                status_indicator: StatusIndicator::OK,
+                message: b"POP3 server ready"
+            }
+        )
+    }
+
+    #[test]
+    fn test_quit() {
+        assert_eq!(
+            quit(b"+OK dewey POP3 server signing off\r\n").unwrap(),
+            Quit {
+                status_indicator: StatusIndicator::OK,
+                message: b"dewey POP3 server signing off"
+            }
+        )
+    }
 }

@@ -25,8 +25,8 @@ pub(crate) fn take_until_crlf(s: &[u8]) -> IResult<&[u8], &[u8]> {
 
 /// A parser parses one line response which only have two parts
 /// in which status indicator and messages exist.
-pub(crate) fn one_line_response_two_parts_parser<T: OneLine + Default>(
-    s: &[u8],
+pub(crate) fn one_line_response_two_parts_parser<'a, T: OneLine<'a> + Default>(
+    s: &'a [u8],
 ) -> IResult<&[u8], T> {
     map(
         tuple((
@@ -40,7 +40,7 @@ pub(crate) fn one_line_response_two_parts_parser<T: OneLine + Default>(
         |(si, _, message)| {
             let mut response = T::default();
             response.set_status_indicator(si);
-            response.set_message(message.to_vec());
+            response.set_message(message);
             response
         },
     )(s)
@@ -58,21 +58,26 @@ pub(crate) fn parse_u8_slice_to_usize_or_0(s: &[u8]) -> usize {
     }
 }
 
-#[test]
-fn test_take_untill_crlf() {
-    assert_eq!(take_until_crlf(b"1234567\r\n").unwrap().1, b"1234567");
-    assert_eq!(take_until_crlf(b"\r\n").unwrap().1, b"");
-}
+#[cfg(test)]
+mod tests {
+    use super::*;
 
-#[test]
-fn test_one_line_response_two_parts_parser() {
-    assert_eq!(
-        one_line_response_two_parts_parser::<Greeting>(b"+OK POP3 server ready\r\n")
-            .unwrap()
-            .1,
-        Greeting {
-            status_indicator: StatusIndicator::OK,
-            message: b"POP3 server ready".to_vec()
-        }
-    )
+    #[test]
+    fn test_take_untill_crlf() {
+        assert_eq!(take_until_crlf(b"1234567\r\n").unwrap().1, b"1234567");
+        assert_eq!(take_until_crlf(b"\r\n").unwrap().1, b"");
+    }
+
+    #[test]
+    fn test_one_line_response_two_parts_parser() {
+        assert_eq!(
+            one_line_response_two_parts_parser::<Greeting>(b"+OK POP3 server ready\r\n")
+                .unwrap()
+                .1,
+            Greeting {
+                status_indicator: StatusIndicator::OK,
+                message: b"POP3 server ready"
+            }
+        )
+    }
 }
