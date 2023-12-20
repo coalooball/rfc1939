@@ -2,7 +2,7 @@ use crate::common::StatusIndicator;
 
 /// Greeting
 /// StatusIndicator, Status Indicator stand for +OK/-ERR
-/// Vec<u8>, message
+/// &[u8], message
 #[derive(Debug, PartialEq)]
 pub struct Greeting<'a> {
     pub status_indicator: StatusIndicator,
@@ -11,7 +11,7 @@ pub struct Greeting<'a> {
 
 /// Quit
 /// StatusIndicator, Status Indicator stand for +OK/-ERR
-/// Vec<u8>, message
+/// &[u8], message
 #[derive(Debug, PartialEq)]
 pub struct Quit<'a> {
     pub status_indicator: StatusIndicator,
@@ -117,7 +117,7 @@ impl<'a> OneLine<'a> for OneLineTwoParts<'a> {
 /// StatusIndicator, Status Indicator stand for +OK/-ERR
 /// usize, the number of messages in the maildrop
 /// usize, the size of the maildrop in octets
-/// Vec<u8>, message
+/// &[u8], message
 #[derive(Debug, PartialEq)]
 pub struct Stat<'a> {
     pub status_indicator: StatusIndicator,
@@ -131,10 +131,21 @@ pub struct Stat<'a> {
 /// Vec<(usize, usize)>, A vector containing tuple in which
 ///     left usize is message-number and
 ///     right usize is size of the message in octets
-/// Vec<u8>, message
+/// &[u8], message
 #[derive(Debug, PartialEq)]
 pub struct List<'a> {
     pub status_indicator: StatusIndicator,
     pub informations: Vec<(usize, usize)>,
+    pub message: &'a [u8],
+}
+
+/// RETR msg
+/// StatusIndicator, Status Indicator stand for +OK/-ERR
+/// &[u8], A slice containing message body
+/// &[u8], message
+#[derive(Debug, PartialEq)]
+pub struct Retr<'a> {
+    pub status_indicator: StatusIndicator,
+    pub message_body: Option<&'a [u8]>,
     pub message: &'a [u8],
 }

@@ -1,13 +1,18 @@
 use crate::common::{
     one_line_response_two_parts_parser, parse_u8_slice_to_usize_or_0, take_until_crlf,
-    StatusIndicator,
+    take_until_crlf_consume_crlf, StatusIndicator,
 };
-use crate::types::response::{List, OneLineTwoParts, Stat};
-use nom::multi::many1;
-use nom::sequence::{preceded, separated_pair, terminated};
+use crate::types::response::{List, OneLineTwoParts, Retr, Stat};
 use nom::{
-    branch::alt, bytes::complete::tag, character::complete::digit1, combinator::map,
-    combinator::opt, sequence::tuple, IResult,
+    branch::alt,
+    bytes::complete::{tag, tag_no_case, take_until},
+    character::complete::digit1,
+    combinator::map,
+    combinator::opt,
+    multi::many1,
+    sequence::tuple,
+    sequence::{preceded, separated_pair, terminated},
+    IResult,
 };
 
 // ################################################################################
@@ -30,7 +35,7 @@ pub(crate) fn stat_parser(s: &[u8]) -> IResult<&[u8], Stat> {
     alt((
         map(
             tuple((
-                map(tag(b"+OK"), |_| StatusIndicator::OK),
+                map(tag_no_case(b"+OK"), |_| StatusIndicator::OK),
                 tag(b" "),
                 digit1,
                 tag(b" "),
@@ -103,7 +108,7 @@ fn list_multi_line_parser(s: &[u8]) -> IResult<&[u8], List> {
     map(
         terminated(
             tuple((
-                map(tag(b"+OK"), |_| StatusIndicator::OK),
+                map(tag_no_case(b"+OK"), |_| StatusIndicator::OK),
                 map(opt(preceded(tag(b" "), take_until_crlf)), |x| {
                     if let Some(msg) = x {
                         msg
@@ -135,7 +140,7 @@ fn list_one_line_parser(s: &[u8]) -> IResult<&[u8], List> {
         map(
             terminated(
                 tuple((
-                    map(tag(b"+OK"), |_| StatusIndicator::OK),
+                    map(tag_no_case(b"+OK"), |_| StatusIndicator::OK),
                     tag(b" "),
                     map(digit1, parse_u8_slice_to_usize_or_0),
                     tag(b" "),
@@ -157,6 +162,46 @@ fn list_one_line_parser(s: &[u8]) -> IResult<&[u8], List> {
             }
         }),
     ))(s)
+}
+
+// ################################################################################
+/// RETR msg
+/// Restrictions:
+///     may only be given in the TRANSACTION state
+/// Discussion:
+///     If the POP3 server issues a positive response, then the
+///     response given is multi-line.  After the initial +OK, the
+///     POP3 server sends the message corresponding to the given
+///     message-number, being careful to byte-stuff the termination
+///     character (as with all multi-line responses).
+/// Possible Responses:
+///     +OK message follows
+///     -ERR no such message
+// ################################################################################
+pub fn retr(s: &[u8]) -> Option<Retr> {
+    match retr_parser(s) {
+        Ok((_, x)) => Some(x),
+        Err(_) => None,
+    }
+}
+
+pub(crate) fn retr_parser(s: &[u8]) -> IResult<&[u8], Retr> {
+    map(
+        tuple((
+            alt((
+                map(tag_no_case(b"+OK"), |_| StatusIndicator::OK),
+                map(tag_no_case(b"-ERR"), |_| StatusIndicator::ERR),
+            )),
+            tag(b" "),
+            take_until_crlf_consume_crlf,
+            opt(terminated(take_until("\r\n.\r\n"), tag(b"\r\n.\r\n"))),
+        )),
+        |(si, _, msg, body)| Retr {
+            status_indicator: si,
+            message: msg,
+            message_body: body,
+        },
+    )(s)
 }
 
 #[test]
@@ -253,6 +298,19 @@ mod tests {
                 status_indicator: StatusIndicator::ERR,
                 informations: vec![],
                 message: b"Syntax error"
+            }
+        );
+    }
+
+    #[test]
+    fn test_retr() {
+        assert_eq!(
+            retr(b"+OK 120 octets\r\n<the POP3 server sends the entire message here>\r\n.\r\n")
+                .unwrap(),
+            Retr {
+                status_indicator: StatusIndicator::OK,
+                message_body: Some(b"<the POP3 server sends the entire message here>"),
+                message: b"120 octets"
             }
         );
     }

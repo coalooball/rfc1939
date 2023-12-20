@@ -1,9 +1,10 @@
 use crate::common::parse_u8_slice_to_usize_or_0;
-use crate::types::command::{List, Stat};
+use crate::types::command::{List, Retr, Stat};
 use nom::{
     bytes::complete::{tag, tag_no_case},
     character::complete::digit1,
     combinator::{map, opt},
+    sequence::delimited,
     sequence::{preceded, terminated, tuple},
     IResult,
 };
@@ -59,10 +60,37 @@ pub(crate) fn list_parser(s: &[u8]) -> IResult<&[u8], List> {
     )(s)
 }
 
+// ################################################################################
+/// RETR msg
+/// Arguments:
+///     a message-number (required)
+/// Restrictions:
+///     may only be given in the TRANSACTION state
+/// Examples:
+///     C: RETR 1
+// ################################################################################
+pub fn retr(s: &[u8]) -> Option<Retr> {
+    match retr_parser(s) {
+        Ok((_, x)) => Some(x),
+        Err(_) => None,
+    }
+}
+
+pub(crate) fn retr_parser(s: &[u8]) -> IResult<&[u8], Retr> {
+    map(
+        delimited(
+            tag_no_case(b"RETR "),
+            map(digit1, parse_u8_slice_to_usize_or_0),
+            tag(b"\r\n"),
+        ),
+        |x| Retr { message_number: x },
+    )(s)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
-    
+
     #[test]
     fn test_stat() {
         assert_eq!(stat(b"stat\r\n"), Some(Stat));
@@ -100,5 +128,10 @@ mod tests {
                 message_number: Some(2222)
             }
         );
+    }
+
+    #[test]
+    fn test_retr() {
+        assert_eq!(retr(b"RETR 1\r\n").unwrap(), Retr { message_number: 1 });
     }
 }

@@ -1,7 +1,7 @@
 use crate::types::response::*;
 use nom::{
     branch::alt,
-    bytes::complete::{tag, take_until},
+    bytes::complete::{tag, tag_no_case, take_until},
     combinator::map,
     sequence::terminated,
     sequence::tuple,
@@ -31,8 +31,8 @@ pub(crate) fn one_line_response_two_parts_parser<'a, T: OneLine<'a> + Default>(
     map(
         tuple((
             alt((
-                map(tag(b"+OK"), |_| StatusIndicator::OK),
-                map(tag(b"-ERR"), |_| StatusIndicator::ERR),
+                map(tag_no_case(b"+OK"), |_| StatusIndicator::OK),
+                map(tag_no_case(b"-ERR"), |_| StatusIndicator::ERR),
             )),
             tag(b" "),
             take_until_crlf_consume_crlf,
