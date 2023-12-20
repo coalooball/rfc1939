@@ -1,7 +1,7 @@
 use crate::types::response::*;
 use nom::{
     branch::alt,
-    bytes::complete::{tag, take_until1},
+    bytes::complete::{tag, take_until},
     combinator::map,
     sequence::terminated,
     sequence::tuple,
@@ -15,8 +15,12 @@ pub enum StatusIndicator {
     ERR,
 }
 
+pub(crate) fn take_until_crlf_consume_crlf(s: &[u8]) -> IResult<&[u8], &[u8]> {
+    terminated(take_until("\r\n"), tag(b"\r\n"))(s)
+}
+
 pub(crate) fn take_until_crlf(s: &[u8]) -> IResult<&[u8], &[u8]> {
-    terminated(take_until1("\r\n"), tag(b"\r\n"))(s)
+    take_until("\r\n")(s)
 }
 
 /// A parser parses one line response which only have two parts
@@ -31,7 +35,7 @@ pub(crate) fn one_line_response_two_parts_parser<T: OneLine + Default>(
                 map(tag(b"-ERR"), |_| StatusIndicator::ERR),
             )),
             tag(b" "),
-            take_until_crlf,
+            take_until_crlf_consume_crlf,
         )),
         |(si, _, message)| {
             let mut response = T::default();
@@ -57,6 +61,7 @@ pub(crate) fn parse_u8_slice_to_usize_or_0(s: &[u8]) -> usize {
 #[test]
 fn test_take_untill_crlf() {
     assert_eq!(take_until_crlf(b"1234567\r\n").unwrap().1, b"1234567");
+    assert_eq!(take_until_crlf(b"\r\n").unwrap().1, b"");
 }
 
 #[test]

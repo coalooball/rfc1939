@@ -1,11 +1,17 @@
 use crate::common::StatusIndicator;
 
+/// Greeting
+/// StatusIndicator, Status Indicator stand for +OK/-ERR
+/// Vec<u8>, message
 #[derive(Debug, PartialEq)]
 pub struct Greeting {
     pub status_indicator: StatusIndicator,
     pub message: Vec<u8>,
 }
 
+/// Quit
+/// StatusIndicator, Status Indicator stand for +OK/-ERR
+/// Vec<u8>, message
 #[derive(Debug, PartialEq)]
 pub struct Quit {
     pub status_indicator: StatusIndicator,
@@ -108,13 +114,27 @@ impl OneLine for OneLineTwoParts {
 }
 
 /// STAT
-/// +OK
-/// the number of messages in the maildrop
-/// the size of the maildrop in octets
+/// StatusIndicator, Status Indicator stand for +OK/-ERR
+/// usize, the number of messages in the maildrop
+/// usize, the size of the maildrop in octets
+/// Vec<u8>, message
 #[derive(Debug, PartialEq)]
 pub struct Stat {
     pub status_indicator: StatusIndicator,
     pub number_of_messages: usize,
     pub size_in_octets: usize,
+    pub message: Vec<u8>,
+}
+
+/// LIST [msg]
+/// StatusIndicator, Status Indicator stand for +OK/-ERR
+/// Vec<(usize, usize)>, A vector containing tuple in which
+///     left usize is message-number and
+///     right usize is size of the message in octets
+/// Vec<u8>, message
+#[derive(Debug, PartialEq)]
+pub struct List {
+    pub status_indicator: StatusIndicator,
+    pub informations: Vec<(usize, usize)>,
     pub message: Vec<u8>,
 }
