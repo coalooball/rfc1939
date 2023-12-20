@@ -1,8 +1,13 @@
 use crate::types::command::Stat;
-use nom::{bytes::complete::tag_no_case, combinator::map, IResult};
+use nom::{
+    bytes::complete::{tag, tag_no_case},
+    combinator::map,
+    sequence::terminated,
+    IResult,
+};
 
 pub(crate) fn stat_parser(s: &[u8]) -> IResult<&[u8], Stat> {
-    map(tag_no_case(b"STAT"), |_| Stat)(s)
+    map(terminated(tag_no_case(b"STAT"), tag(b"\r\n")), |_| Stat)(s)
 }
 
 /// STAT
@@ -18,6 +23,7 @@ pub fn stat(s: &[u8]) -> Option<Stat> {
 
 #[test]
 fn test_stat() {
-    assert_eq!(stat(b"stat"), Some(Stat));
+    assert_eq!(stat(b"stat\r\n"), Some(Stat));
     assert_eq!(stat(b" stat"), None);
+    assert_eq!(stat(b"stat"), None);
 }
