@@ -1,5 +1,6 @@
 use crate::common::parse_u8_slice_to_usize_or_0;
-use crate::types::command::{Dele, List, Noop, Retr, Rset, Stat};
+use crate::types::command::{Dele, List, Noop, Retr, Rset, Stat, Top};
+use nom::sequence::separated_pair;
 use nom::{
     bytes::complete::{tag, tag_no_case},
     character::complete::digit1,
@@ -152,6 +153,41 @@ pub(crate) fn rset_parser(s: &[u8]) -> IResult<&[u8], Rset> {
     map(terminated(tag_no_case(b"RSET"), tag(b"\r\n")), |_| Rset)(s)
 }
 
+// ################################################################################
+/// TOP msg n
+/// Arguments:
+///     a message-number (required)
+///     a non-negative number of lines (required)
+/// Restrictions:
+///     may only be given in the TRANSACTION state
+/// Examples:
+///     C: TOP 20 20
+// ################################################################################
+pub fn top(s: &[u8]) -> Option<Top> {
+    match top_parser(s) {
+        Ok((_, x)) => Some(x),
+        Err(_) => None,
+    }
+}
+
+pub(crate) fn top_parser(s: &[u8]) -> IResult<&[u8], Top> {
+    map(
+        delimited(
+            tag_no_case(b"TOP "),
+            separated_pair(
+                map(digit1, parse_u8_slice_to_usize_or_0),
+                tag(b" "),
+                map(digit1, parse_u8_slice_to_usize_or_0),
+            ),
+            tag(b"\r\n"),
+        ),
+        |(x, y)| Top {
+            message_number: x,
+            line_numnber: y,
+        },
+    )(s)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -213,5 +249,15 @@ mod tests {
     #[test]
     fn test_rset() {
         assert_eq!(rset(b"RSET\r\n").unwrap(), Rset);
+    }
+    #[test]
+    fn test_top() {
+        assert_eq!(
+            top(b"TOP 1 10\r\n").unwrap(),
+            Top {
+                message_number: 1,
+                line_numnber: 10
+            }
+        );
     }
 }

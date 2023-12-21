@@ -57,6 +57,27 @@ pub(crate) fn parse_u8_slice_to_usize_or_0(s: &[u8]) -> usize {
     }
 }
 
+pub(crate) fn retr_message_parser<'a, T: HaveMessageBody<'a>>(s: &'a [u8]) -> IResult<&[u8], T> {
+    map(
+        tuple((
+            alt((
+                map(tag_no_case(b"+OK"), |_| StatusIndicator::OK),
+                map(tag_no_case(b"-ERR"), |_| StatusIndicator::ERR),
+            )),
+            tag(b" "),
+            take_until_crlf_consume_crlf,
+            opt(terminated(take_until("\r\n.\r\n"), tag(b"\r\n.\r\n"))),
+        )),
+        |(si, _, msg, body)| {
+            let mut tmp_message = T::default();
+            tmp_message.set_status_indicator(si);
+            tmp_message.set_message(msg);
+            tmp_message.set_message_body(body);
+            tmp_message
+        },
+    )(s)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

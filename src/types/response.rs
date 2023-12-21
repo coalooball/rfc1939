@@ -138,7 +138,12 @@ pub struct List<'a> {
     pub informations: Vec<(usize, usize)>,
     pub message: &'a [u8],
 }
-
+// ################################################################################
+pub trait HaveMessageBody<'a>: Default {
+    fn set_status_indicator(&mut self, si: StatusIndicator);
+    fn set_message_body(&mut self, body: Option<&'a [u8]>);
+    fn set_message(&mut self, msg: &'a [u8]);
+}
 /// RETR msg
 /// StatusIndicator, Status Indicator stand for +OK/-ERR
 /// &[u8], A slice containing message body
@@ -149,6 +154,63 @@ pub struct Retr<'a> {
     pub message_body: Option<&'a [u8]>,
     pub message: &'a [u8],
 }
+
+impl Default for Retr<'_> {
+    fn default() -> Self {
+        Retr {
+            status_indicator: StatusIndicator::OK,
+            message_body: None,
+            message: &[],
+        }
+    }
+}
+
+impl<'a> HaveMessageBody<'a> for Retr<'a> {
+    fn set_status_indicator(&mut self, si: StatusIndicator) {
+        self.status_indicator = si;
+    }
+    fn set_message(&mut self, msg: &'a [u8]) {
+        self.message = msg;
+    }
+    fn set_message_body(&mut self, body: Option<&'a [u8]>) {
+        self.message_body = body;
+    }
+}
+
+/// TOP msg n
+/// StatusIndicator, Status Indicator stand for +OK/-ERR
+/// &[u8], A slice containing message body
+/// &[u8], message
+#[derive(Debug, PartialEq)]
+pub struct Top<'a> {
+    pub status_indicator: StatusIndicator,
+    pub message_body: Option<&'a [u8]>,
+    pub message: &'a [u8],
+}
+
+impl Default for Top<'_> {
+    fn default() -> Self {
+        Top {
+            status_indicator: StatusIndicator::OK,
+            message_body: None,
+            message: &[],
+        }
+    }
+}
+
+impl<'a> HaveMessageBody<'a> for Top<'a> {
+    fn set_status_indicator(&mut self, si: StatusIndicator) {
+        self.status_indicator = si;
+    }
+    fn set_message(&mut self, msg: &'a [u8]) {
+        self.message = msg;
+    }
+    fn set_message_body(&mut self, body: Option<&'a [u8]>) {
+        self.message_body = body;
+    }
+}
+
+// ################################################################################
 
 /// DELE msg
 /// StatusIndicator, Status Indicator stand for +OK/-ERR

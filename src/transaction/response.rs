@@ -1,11 +1,11 @@
 use crate::common::{
-    one_line_response_two_parts_parser, parse_u8_slice_to_usize_or_0, take_until_crlf,
-    take_until_crlf_consume_crlf, StatusIndicator,
+    one_line_response_two_parts_parser, parse_u8_slice_to_usize_or_0, retr_message_parser,
+    take_until_crlf, StatusIndicator,
 };
-use crate::types::response::{Dele, List, Noop, OneLineTwoParts, Retr, Rset, Stat};
+use crate::types::response::{Dele, List, Noop, OneLineTwoParts, Retr, Rset, Stat, Top};
 use nom::{
     branch::alt,
-    bytes::complete::{tag, tag_no_case, take_until},
+    bytes::complete::{tag, tag_no_case},
     character::complete::digit1,
     combinator::map,
     combinator::opt,
@@ -186,22 +186,37 @@ pub fn retr(s: &[u8]) -> Option<Retr> {
 }
 
 pub(crate) fn retr_parser(s: &[u8]) -> IResult<&[u8], Retr> {
-    map(
-        tuple((
-            alt((
-                map(tag_no_case(b"+OK"), |_| StatusIndicator::OK),
-                map(tag_no_case(b"-ERR"), |_| StatusIndicator::ERR),
-            )),
-            tag(b" "),
-            take_until_crlf_consume_crlf,
-            opt(terminated(take_until("\r\n.\r\n"), tag(b"\r\n.\r\n"))),
-        )),
-        |(si, _, msg, body)| Retr {
-            status_indicator: si,
-            message: msg,
-            message_body: body,
-        },
-    )(s)
+    retr_message_parser::<Retr>(s)
+}
+
+// ################################################################################
+/// TOP msg n
+/// Restrictions:
+///     may only be given in the TRANSACTION state
+/// Discussion:
+///     If the POP3 server issues a positive response, then the
+///     response given is multi-line.  After the initial +OK, the
+///     POP3 server sends the headers of the message, the blank
+///     line separating the headers from the body, and then the
+///     number of lines of the indicated message's body, being
+///     careful to byte-stuff the termination character (as with
+///     all multi-line responses).
+///     Note that if the number of lines requested by the POP3
+///     client is greater than than the number of lines in the
+///     body, then the POP3 server sends the entire message.
+/// Possible Responses:
+///     +OK top of message follows
+///     -ERR no such message
+// ################################################################################
+pub fn top(s: &[u8]) -> Option<Top> {
+    match top_parser(s) {
+        Ok((_, x)) => Some(x),
+        Err(_) => None,
+    }
+}
+
+pub(crate) fn top_parser(s: &[u8]) -> IResult<&[u8], Top> {
+    retr_message_parser::<Top>(s)
 }
 
 // ################################################################################
@@ -419,6 +434,17 @@ mod tests {
             Rset {
                 status_indicator: StatusIndicator::OK,
                 message: b"core mail"
+            }
+        );
+    }
+    #[test]
+    fn test_top() {
+        assert_eq!(
+            top(b"+OK 1364\r\n58.87.109.78\r\n.\r\n").unwrap(),
+            Top {
+                status_indicator: StatusIndicator::OK,
+                message_body: Some(b"58.87.109.78"),
+                message: b"1364"
             }
         );
     }
