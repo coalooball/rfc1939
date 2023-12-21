@@ -2,7 +2,7 @@ use crate::common::{
     one_line_response_two_parts_parser, parse_u8_slice_to_usize_or_0, take_until_crlf,
     take_until_crlf_consume_crlf, StatusIndicator,
 };
-use crate::types::response::{Dele, List, Noop, OneLineTwoParts, Retr, Stat};
+use crate::types::response::{Dele, List, Noop, OneLineTwoParts, Retr, Rset, Stat};
 use nom::{
     branch::alt,
     bytes::complete::{tag, tag_no_case, take_until},
@@ -255,6 +255,30 @@ pub(crate) fn noop_parser(s: &[u8]) -> IResult<&[u8], Noop> {
     one_line_response_two_parts_parser::<Noop>(s)
 }
 
+// ################################################################################
+/// RSET
+/// Restrictions:
+///     may only be given in the TRANSACTION state
+/// Discussion:
+///     If any messages have been marked as deleted by the POP3
+///     server, they are unmarked.  The POP3 server then replies
+///     with a positive response.
+/// Possible Responses:
+///     +OK
+/// Examples:
+///     S: +OK maildrop has 2 messages (320 octets)
+// ################################################################################
+pub fn rset(s: &[u8]) -> Option<Rset> {
+    match rset_parser(s) {
+        Ok((_, x)) => Some(x),
+        Err(_) => None,
+    }
+}
+
+pub(crate) fn rset_parser(s: &[u8]) -> IResult<&[u8], Rset> {
+    one_line_response_two_parts_parser::<Rset>(s)
+}
+
 #[test]
 fn test_stat_parser() {
     assert_eq!(
@@ -384,6 +408,17 @@ mod tests {
             Noop {
                 status_indicator: StatusIndicator::OK,
                 message: b""
+            }
+        );
+    }
+
+    #[test]
+    fn test_rset() {
+        assert_eq!(
+            rset(b"+OK core mail\r\n").unwrap(),
+            Rset {
+                status_indicator: StatusIndicator::OK,
+                message: b"core mail"
             }
         );
     }

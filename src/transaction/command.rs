@@ -1,5 +1,5 @@
 use crate::common::parse_u8_slice_to_usize_or_0;
-use crate::types::command::{Dele, List, Noop, Retr, Stat};
+use crate::types::command::{Dele, List, Noop, Retr, Rset, Stat};
 use nom::{
     bytes::complete::{tag, tag_no_case},
     character::complete::digit1,
@@ -133,6 +133,25 @@ pub(crate) fn noop_parser(s: &[u8]) -> IResult<&[u8], Noop> {
     map(terminated(tag_no_case(b"NOOP"), tag(b"\r\n")), |_| Noop)(s)
 }
 
+// ################################################################################
+/// RSET
+/// Arguments: none
+/// Restrictions:
+///     may only be given in the TRANSACTION state
+/// Examples:
+///     C: RSET
+// ################################################################################
+pub fn rset(s: &[u8]) -> Option<Rset> {
+    match rset_parser(s) {
+        Ok((_, x)) => Some(x),
+        Err(_) => None,
+    }
+}
+
+pub(crate) fn rset_parser(s: &[u8]) -> IResult<&[u8], Rset> {
+    map(terminated(tag_no_case(b"RSET"), tag(b"\r\n")), |_| Rset)(s)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -189,5 +208,10 @@ mod tests {
     #[test]
     fn test_noop() {
         assert_eq!(noop(b"NOOP\r\n").unwrap(), Noop);
+    }
+
+    #[test]
+    fn test_rset() {
+        assert_eq!(rset(b"RSET\r\n").unwrap(), Rset);
     }
 }

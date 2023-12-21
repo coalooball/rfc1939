@@ -220,3 +220,38 @@ impl<'a> OneLine<'a> for Noop<'a> {
         self.message = message;
     }
 }
+
+/// RSET
+/// StatusIndicator, Status Indicator stand for +OK/-ERR
+#[derive(Debug, PartialEq)]
+pub struct Rset<'a> {
+    pub status_indicator: StatusIndicator,
+    pub message: &'a [u8],
+}
+
+impl Default for Rset<'_> {
+    fn default() -> Self {
+        Rset {
+            status_indicator: StatusIndicator::OK,
+            message: &[],
+        }
+    }
+}
+
+impl<'a> OneLine<'a> for Rset<'a> {
+    fn status_indicator(&self) -> &StatusIndicator {
+        &self.status_indicator
+    }
+
+    fn set_status_indicator(&mut self, si: StatusIndicator) {
+        self.status_indicator = si;
+    }
+
+    fn message(&self) -> &[u8] {
+        &self.message
+    }
+
+    fn set_message(&mut self, message: &'a [u8]) {
+        self.message = message;
+    }
+}

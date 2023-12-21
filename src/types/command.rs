@@ -21,3 +21,6 @@ pub struct Dele {
 
 #[derive(Debug, PartialEq)]
 pub struct Noop;
+
+#[derive(Debug, PartialEq)]
+pub struct Rset;
