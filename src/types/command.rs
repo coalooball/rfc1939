@@ -18,3 +18,6 @@ pub struct Retr {
 pub struct Dele {
     pub message_number: usize,
 }
+
+#[derive(Debug, PartialEq)]
+pub struct Noop;

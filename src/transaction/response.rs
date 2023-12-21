@@ -2,7 +2,7 @@ use crate::common::{
     one_line_response_two_parts_parser, parse_u8_slice_to_usize_or_0, take_until_crlf,
     take_until_crlf_consume_crlf, StatusIndicator,
 };
-use crate::types::response::{Dele, List, OneLineTwoParts, Retr, Stat};
+use crate::types::response::{Dele, List, Noop, OneLineTwoParts, Retr, Stat};
 use nom::{
     branch::alt,
     bytes::complete::{tag, tag_no_case, take_until},
@@ -229,20 +229,30 @@ pub fn dele(s: &[u8]) -> Option<Dele> {
 }
 
 pub(crate) fn dele_parser(s: &[u8]) -> IResult<&[u8], Dele> {
-    map(
-        separated_pair(
-            alt((
-                map(tag_no_case(b"+OK"), |_| StatusIndicator::OK),
-                map(tag_no_case(b"-ERR"), |_| StatusIndicator::ERR),
-            )),
-            tag(b" "),
-            take_until_crlf_consume_crlf,
-        ),
-        |(si, msg)| Dele {
-            status_indicator: si,
-            message: msg,
-        },
-    )(s)
+    one_line_response_two_parts_parser::<Dele>(s)
+}
+
+// ################################################################################
+/// NOOP
+/// Restrictions:
+///     may only be given in the TRANSACTION state
+/// Discussion:
+///     The POP3 server does nothing, it merely replies with a
+///     positive response.
+/// Possible Responses:
+///     +OK
+/// Examples:
+///     S: +OK
+// ################################################################################
+pub fn noop(s: &[u8]) -> Option<Noop> {
+    match noop_parser(s) {
+        Ok((_, x)) => Some(x),
+        Err(_) => None,
+    }
+}
+
+pub(crate) fn noop_parser(s: &[u8]) -> IResult<&[u8], Noop> {
+    one_line_response_two_parts_parser::<Noop>(s)
 }
 
 #[test]
@@ -363,6 +373,17 @@ mod tests {
             Dele {
                 status_indicator: StatusIndicator::OK,
                 message: b"message 1 deleted"
+            }
+        );
+    }
+
+    #[test]
+    fn test_noop() {
+        assert_eq!(
+            noop(b"+OK\r\n").unwrap(),
+            Noop {
+                status_indicator: StatusIndicator::OK,
+                message: b""
             }
         );
     }

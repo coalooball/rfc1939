@@ -1,5 +1,5 @@
 use crate::common::parse_u8_slice_to_usize_or_0;
-use crate::types::command::{Dele, List, Retr, Stat};
+use crate::types::command::{Dele, List, Noop, Retr, Stat};
 use nom::{
     bytes::complete::{tag, tag_no_case},
     character::complete::digit1,
@@ -114,6 +114,25 @@ pub(crate) fn dele_parser(s: &[u8]) -> IResult<&[u8], Dele> {
     )(s)
 }
 
+// ################################################################################
+/// NOOP
+/// Arguments: none
+/// Restrictions:
+///     may only be given in the TRANSACTION state
+/// Examples:
+///     C: NOOP
+// ################################################################################
+pub fn noop(s: &[u8]) -> Option<Noop> {
+    match noop_parser(s) {
+        Ok((_, x)) => Some(x),
+        Err(_) => None,
+    }
+}
+
+pub(crate) fn noop_parser(s: &[u8]) -> IResult<&[u8], Noop> {
+    map(terminated(tag_no_case(b"NOOP"), tag(b"\r\n")), |_| Noop)(s)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -165,5 +184,10 @@ mod tests {
     #[test]
     fn test_dele() {
         assert_eq!(dele(b"DELE 1\r\n").unwrap(), Dele { message_number: 1 });
+    }
+
+    #[test]
+    fn test_noop() {
+        assert_eq!(noop(b"NOOP\r\n").unwrap(), Noop);
     }
 }
