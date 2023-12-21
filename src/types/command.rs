@@ -24,3 +24,6 @@ pub struct Noop;
 
 #[derive(Debug, PartialEq)]
 pub struct Rset;
+
+#[derive(Debug, PartialEq)]
+pub struct Quit;

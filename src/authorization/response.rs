@@ -19,7 +19,7 @@ pub(crate) fn greeting_parser(s: &[u8]) -> IResult<&[u8], Greeting> {
 }
 
 // ################################################################################
-/// Greeting
+/// QUIT
 /// The QUIT command when used in the AUTHORIZATION state
 // ################################################################################
 pub fn quit(s: &[u8]) -> Option<Quit> {
