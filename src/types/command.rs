@@ -12,3 +12,9 @@ pub struct List {
 pub struct Retr {
     pub message_number: usize,
 }
+
+/// A message-number (required)
+#[derive(Debug, PartialEq)]
+pub struct Dele {
+    pub message_number: usize,
+}

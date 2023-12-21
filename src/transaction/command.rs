@@ -1,5 +1,5 @@
 use crate::common::parse_u8_slice_to_usize_or_0;
-use crate::types::command::{List, Retr, Stat};
+use crate::types::command::{Dele, List, Retr, Stat};
 use nom::{
     bytes::complete::{tag, tag_no_case},
     character::complete::digit1,
@@ -87,6 +87,33 @@ pub(crate) fn retr_parser(s: &[u8]) -> IResult<&[u8], Retr> {
     )(s)
 }
 
+// ################################################################################
+/// DELE msg
+/// Arguments:
+///     a message-number (required)
+/// Restrictions:
+///     may only be given in the TRANSACTION state
+/// Examples:
+///     C: DELE 1
+// ################################################################################
+pub fn dele(s: &[u8]) -> Option<Dele> {
+    match dele_parser(s) {
+        Ok((_, x)) => Some(x),
+        Err(_) => None,
+    }
+}
+
+pub(crate) fn dele_parser(s: &[u8]) -> IResult<&[u8], Dele> {
+    map(
+        delimited(
+            tag_no_case(b"DELE "),
+            map(digit1, parse_u8_slice_to_usize_or_0),
+            tag(b"\r\n"),
+        ),
+        |x| Dele { message_number: x },
+    )(s)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -133,5 +160,10 @@ mod tests {
     #[test]
     fn test_retr() {
         assert_eq!(retr(b"RETR 1\r\n").unwrap(), Retr { message_number: 1 });
+    }
+
+    #[test]
+    fn test_dele() {
+        assert_eq!(dele(b"DELE 1\r\n").unwrap(), Dele { message_number: 1 });
     }
 }

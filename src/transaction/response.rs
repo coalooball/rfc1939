@@ -2,7 +2,7 @@ use crate::common::{
     one_line_response_two_parts_parser, parse_u8_slice_to_usize_or_0, take_until_crlf,
     take_until_crlf_consume_crlf, StatusIndicator,
 };
-use crate::types::response::{List, OneLineTwoParts, Retr, Stat};
+use crate::types::response::{Dele, List, OneLineTwoParts, Retr, Stat};
 use nom::{
     branch::alt,
     bytes::complete::{tag, tag_no_case, take_until},
@@ -204,6 +204,47 @@ pub(crate) fn retr_parser(s: &[u8]) -> IResult<&[u8], Retr> {
     )(s)
 }
 
+// ################################################################################
+/// DELE msg
+/// Restrictions:
+///     may only be given in the TRANSACTION state
+/// Discussion:
+///     The POP3 server marks the message as deleted.  Any future
+///     reference to the message-number associated with the message
+///     in a POP3 command generates an error.  The POP3 server does
+///     not actually delete the message until the POP3 session
+///     enters the UPDATE state.
+/// Possible Responses:
+///     +OK message deleted
+///     -ERR no such message
+/// Examples:
+///     S: +OK message 1 deleted
+///     S: -ERR message 2 already deleted
+// ################################################################################
+pub fn dele(s: &[u8]) -> Option<Dele> {
+    match dele_parser(s) {
+        Ok((_, x)) => Some(x),
+        Err(_) => None,
+    }
+}
+
+pub(crate) fn dele_parser(s: &[u8]) -> IResult<&[u8], Dele> {
+    map(
+        separated_pair(
+            alt((
+                map(tag_no_case(b"+OK"), |_| StatusIndicator::OK),
+                map(tag_no_case(b"-ERR"), |_| StatusIndicator::ERR),
+            )),
+            tag(b" "),
+            take_until_crlf_consume_crlf,
+        ),
+        |(si, msg)| Dele {
+            status_indicator: si,
+            message: msg,
+        },
+    )(s)
+}
+
 #[test]
 fn test_stat_parser() {
     assert_eq!(
@@ -311,6 +352,17 @@ mod tests {
                 status_indicator: StatusIndicator::OK,
                 message_body: Some(b"<the POP3 server sends the entire message here>"),
                 message: b"120 octets"
+            }
+        );
+    }
+
+    #[test]
+    fn test_dele() {
+        assert_eq!(
+            dele(b"+OK message 1 deleted\r\n").unwrap(),
+            Dele {
+                status_indicator: StatusIndicator::OK,
+                message: b"message 1 deleted"
             }
         );
     }

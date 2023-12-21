@@ -149,3 +149,39 @@ pub struct Retr<'a> {
     pub message_body: Option<&'a [u8]>,
     pub message: &'a [u8],
 }
+
+/// DELE msg
+/// StatusIndicator, Status Indicator stand for +OK/-ERR
+/// &[u8], message
+#[derive(Debug, PartialEq)]
+pub struct Dele<'a> {
+    pub status_indicator: StatusIndicator,
+    pub message: &'a [u8],
+}
+
+impl Default for Dele<'_> {
+    fn default() -> Self {
+        Dele {
+            status_indicator: StatusIndicator::OK,
+            message: &[],
+        }
+    }
+}
+
+impl<'a> OneLine<'a> for Dele<'a> {
+    fn status_indicator(&self) -> &StatusIndicator {
+        &self.status_indicator
+    }
+
+    fn set_status_indicator(&mut self, si: StatusIndicator) {
+        self.status_indicator = si;
+    }
+
+    fn message(&self) -> &[u8] {
+        &self.message
+    }
+
+    fn set_message(&mut self, message: &'a [u8]) {
+        self.message = message;
+    }
+}
