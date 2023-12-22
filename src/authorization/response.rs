@@ -138,7 +138,7 @@ mod tests {
             greeting_parser(b"+OK POP3 server ready\r\n").unwrap().1,
             Greeting {
                 status_indicator: StatusIndicator::OK,
-                message: b"POP3 server ready"
+                information: b"POP3 server ready"
             }
         )
     }
@@ -149,7 +149,7 @@ mod tests {
             greeting(b"+OK POP3 server ready\r\n").unwrap(),
             Greeting {
                 status_indicator: StatusIndicator::OK,
-                message: b"POP3 server ready"
+                information: b"POP3 server ready"
             }
         )
     }
@@ -160,7 +160,7 @@ mod tests {
             quit(b"+OK dewey POP3 server signing off\r\n").unwrap(),
             Quit {
                 status_indicator: StatusIndicator::OK,
-                message: b"dewey POP3 server signing off"
+                information: b"dewey POP3 server signing off"
             }
         )
     }
@@ -171,7 +171,7 @@ mod tests {
             user(b"+OK successfully\r\n").unwrap(),
             User {
                 status_indicator: StatusIndicator::OK,
-                message: b"successfully"
+                information: b"successfully"
             }
         )
     }
@@ -182,7 +182,7 @@ mod tests {
             pass(b"+OK successfully\r\n").unwrap(),
             Pass {
                 status_indicator: StatusIndicator::OK,
-                message: b"successfully"
+                information: b"successfully"
             }
         )
     }
@@ -193,7 +193,7 @@ mod tests {
             apop(b"+OK maildrop has 1 message (369 octets)\r\n").unwrap(),
             Apop {
                 status_indicator: StatusIndicator::OK,
-                message: b"maildrop has 1 message (369 octets)"
+                information: b"maildrop has 1 message (369 octets)"
             }
         )
     }

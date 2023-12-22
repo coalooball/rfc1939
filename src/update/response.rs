@@ -45,7 +45,7 @@ mod tests {
             quit(b"-ERR some deleted messages not removed\r\n").unwrap(),
             Quit {
                 status_indicator: StatusIndicator::ERR,
-                message: b"some deleted messages not removed"
+                information: b"some deleted messages not removed"
             }
         );
     }

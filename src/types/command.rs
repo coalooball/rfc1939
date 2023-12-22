@@ -4,19 +4,19 @@ pub struct Stat;
 /// A message-number (optional)
 #[derive(Debug, PartialEq)]
 pub struct List {
-    pub message_number: Option<usize>,
+    pub msg: Option<usize>,
 }
 
 /// A message-number (required)
 #[derive(Debug, PartialEq)]
 pub struct Retr {
-    pub message_number: usize,
+    pub msg: usize,
 }
 
 /// A message-number (required)
 #[derive(Debug, PartialEq)]
 pub struct Dele {
-    pub message_number: usize,
+    pub msg: usize,
 }
 
 #[derive(Debug, PartialEq)]
@@ -32,14 +32,14 @@ pub struct Quit;
 /// A non-negative number of lines (required)
 #[derive(Debug, PartialEq)]
 pub struct Top {
-    pub message_number: usize,
-    pub line_numnber: usize,
+    pub msg: usize,
+    pub n: usize,
 }
 
 /// A message-number (optional)
 #[derive(Debug, PartialEq)]
 pub struct Uidl {
-    pub message_number: Option<usize>,
+    pub msg: Option<usize>,
 }
 
 /// A string identifying a mailbox (required)

@@ -1,1 +1,1 @@
-###### Parsing RFC 1939 (i.e. POP3) data streams
+## A library for parsing byte data streams implemented according to RFC 1939

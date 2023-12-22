@@ -40,10 +40,14 @@ pub(crate) fn one_line_response_two_parts_parser<'a, T: OneLine<'a> + Default>(
             )),
             opt(preceded(tag(b" "), take_until_crlf_consume_crlf)),
         )),
-        |(si, message)| {
+        |(si, information)| {
             let mut response = T::default();
             response.set_status_indicator(si);
-            response.set_message(if let Some(msg) = message { msg } else { &[] });
+            response.set_information(if let Some(information) = information {
+                information
+            } else {
+                &[]
+            });
             response
         },
     )(s)
@@ -72,11 +76,11 @@ pub(crate) fn retr_message_parser<'a, T: HaveMessageBody<'a>>(s: &'a [u8]) -> IR
             take_until_crlf_consume_crlf,
             opt(terminated(take_until("\r\n.\r\n"), tag(b"\r\n.\r\n"))),
         )),
-        |(si, _, msg, body)| {
+        |(si, _, information, message)| {
             let mut tmp_message = T::default();
             tmp_message.set_status_indicator(si);
-            tmp_message.set_message(msg);
-            tmp_message.set_message_body(body);
+            tmp_message.set_information(information);
+            tmp_message.set_message(message);
             tmp_message
         },
     )(s)
@@ -100,7 +104,7 @@ mod tests {
                 .1,
             Greeting {
                 status_indicator: StatusIndicator::OK,
-                message: b"POP3 server ready"
+                information: b"POP3 server ready"
             }
         )
     }

@@ -46,7 +46,7 @@ pub(crate) fn stat_parser(s: &[u8]) -> IResult<&[u8], Stat> {
                 status_indicator: si,
                 number_of_messages: parse_u8_slice_to_usize_or_0(num),
                 size_in_octets: parse_u8_slice_to_usize_or_0(size),
-                message: &[],
+                information: &[],
             },
         ),
         map(one_line_response_two_parts_parser::<OneLineTwoParts>, |x| {
@@ -54,7 +54,7 @@ pub(crate) fn stat_parser(s: &[u8]) -> IResult<&[u8], Stat> {
                 status_indicator: x.left,
                 number_of_messages: 0,
                 size_in_octets: 0,
-                message: x.right,
+                information: x.right,
             }
         }),
     ))(s)
@@ -130,7 +130,7 @@ fn list_multi_line_parser(s: &[u8]) -> IResult<&[u8], List> {
         |(si, msg, infos)| List {
             status_indicator: si,
             informations: infos,
-            message: msg,
+            information: msg,
         },
     )(s)
 }
@@ -151,14 +151,14 @@ fn list_one_line_parser(s: &[u8]) -> IResult<&[u8], List> {
             |(si, _, num, _, size)| List {
                 status_indicator: si,
                 informations: vec![(num, size)],
-                message: &[],
+                information: &[],
             },
         ),
         map(one_line_response_two_parts_parser::<OneLineTwoParts>, |x| {
             List {
                 status_indicator: x.left,
                 informations: vec![],
-                message: x.right,
+                information: x.right,
             }
         }),
     ))(s)
@@ -367,10 +367,10 @@ fn uidl_multi_line_parser(s: &[u8]) -> IResult<&[u8], Uidl> {
             )),
             tag(b"\r\n.\r\n"),
         ),
-        |(si, msg, infos)| Uidl {
+        |(si, information, infos)| Uidl {
             status_indicator: si,
             informations: infos,
-            message: msg,
+            information: information,
         },
     )(s)
 }
@@ -391,14 +391,14 @@ fn uidl_one_line_parser(s: &[u8]) -> IResult<&[u8], Uidl> {
             |(si, _, num, _, size)| Uidl {
                 status_indicator: si,
                 informations: vec![(num, size)],
-                message: &[],
+                information: &[],
             },
         ),
         map(one_line_response_two_parts_parser::<OneLineTwoParts>, |x| {
             Uidl {
                 status_indicator: x.left,
                 informations: vec![],
-                message: x.right,
+                information: x.right,
             }
         }),
     ))(s)
@@ -412,7 +412,7 @@ fn test_stat_parser() {
             status_indicator: StatusIndicator::OK,
             number_of_messages: 2,
             size_in_octets: 320,
-            message: &[]
+            information: &[]
         }
     )
 }
@@ -428,7 +428,7 @@ mod tests {
                 status_indicator: StatusIndicator::OK,
                 number_of_messages: 2,
                 size_in_octets: 320,
-                message: &[]
+                information: &[]
             }
         );
         assert_eq!(
@@ -437,7 +437,7 @@ mod tests {
                 status_indicator: StatusIndicator::ERR,
                 number_of_messages: 0,
                 size_in_octets: 0,
-                message: b"failed"
+                information: b"failed"
             }
         )
     }
@@ -451,7 +451,7 @@ mod tests {
             List {
                 status_indicator: StatusIndicator::OK,
                 informations: vec![(1, 120), (2, 200)],
-                message: b"2 messages (320 octets)"
+                information: b"2 messages (320 octets)"
             }
         );
         assert_eq!(
@@ -461,7 +461,7 @@ mod tests {
             List {
                 status_indicator: StatusIndicator::OK,
                 informations: vec![(1, 120), (2, 200)],
-                message: b""
+                information: b""
             }
         );
         assert_eq!(
@@ -469,7 +469,7 @@ mod tests {
             List {
                 status_indicator: StatusIndicator::OK,
                 informations: vec![(1, 60178)],
-                message: &[]
+                information: &[]
             }
         );
         assert_eq!(
@@ -477,7 +477,7 @@ mod tests {
             List {
                 status_indicator: StatusIndicator::ERR,
                 informations: vec![],
-                message: b"Syntax error"
+                information: b"Syntax error"
             }
         );
     }
@@ -489,7 +489,7 @@ mod tests {
             List {
                 status_indicator: StatusIndicator::OK,
                 informations: vec![(1, 120), (2, 200)],
-                message: b"2 messages (320 octets)"
+                information: b"2 messages (320 octets)"
             }
         );
         assert_eq!(
@@ -497,7 +497,7 @@ mod tests {
             List {
                 status_indicator: StatusIndicator::ERR,
                 informations: vec![],
-                message: b"Syntax error"
+                information: b"Syntax error"
             }
         );
     }
@@ -509,8 +509,8 @@ mod tests {
                 .unwrap(),
             Retr {
                 status_indicator: StatusIndicator::OK,
-                message_body: Some(b"<the POP3 server sends the entire message here>"),
-                message: b"120 octets"
+                message: Some(b"<the POP3 server sends the entire message here>"),
+                information: b"120 octets"
             }
         );
     }
@@ -521,7 +521,7 @@ mod tests {
             dele(b"+OK message 1 deleted\r\n").unwrap(),
             Dele {
                 status_indicator: StatusIndicator::OK,
-                message: b"message 1 deleted"
+                information: b"message 1 deleted"
             }
         );
     }
@@ -532,7 +532,7 @@ mod tests {
             noop(b"+OK\r\n").unwrap(),
             Noop {
                 status_indicator: StatusIndicator::OK,
-                message: b""
+                information: b""
             }
         );
     }
@@ -543,7 +543,7 @@ mod tests {
             rset(b"+OK core mail\r\n").unwrap(),
             Rset {
                 status_indicator: StatusIndicator::OK,
-                message: b"core mail"
+                information: b"core mail"
             }
         );
     }
@@ -553,8 +553,8 @@ mod tests {
             top(b"+OK 1364\r\n58.87.109.78\r\n.\r\n").unwrap(),
             Top {
                 status_indicator: StatusIndicator::OK,
-                message_body: Some(b"58.87.109.78"),
-                message: b"1364"
+                message: Some(b"58.87.109.78"),
+                information: b"1364"
             }
         );
     }
@@ -566,7 +566,7 @@ mod tests {
             Uidl {
                 status_indicator: StatusIndicator::OK,
                 informations: vec![(1, b"whqtswO00WBw418f9t5JxYwZ"), (2, b"QhdPYR:00WBw1Ph7x7")],
-                message: &vec![]
+                information: &vec![]
             }
         );
         assert_eq!(
@@ -574,7 +574,7 @@ mod tests {
             Uidl {
                 status_indicator: StatusIndicator::OK,
                 informations: vec![(1, b"whqtswO00WBw418f9t5JxYwZ%")],
-                message: &vec![]
+                information: &vec![]
             }
         );
         assert_eq!(
@@ -582,7 +582,7 @@ mod tests {
             Uidl {
                 status_indicator: StatusIndicator::ERR,
                 informations: vec![],
-                message: b"Syntax error"
+                information: b"Syntax error"
             }
         );
     }

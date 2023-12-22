@@ -52,11 +52,9 @@ pub(crate) fn list_parser(s: &[u8]) -> IResult<&[u8], List> {
         ),
         |(_, x)| match x {
             Some(num) => List {
-                message_number: Some(parse_u8_slice_to_usize_or_0(num)),
+                msg: Some(parse_u8_slice_to_usize_or_0(num)),
             },
-            None => List {
-                message_number: None,
-            },
+            None => List { msg: None },
         },
     )(s)
 }
@@ -84,7 +82,7 @@ pub(crate) fn retr_parser(s: &[u8]) -> IResult<&[u8], Retr> {
             map(digit1, parse_u8_slice_to_usize_or_0),
             tag(b"\r\n"),
         ),
-        |x| Retr { message_number: x },
+        |x| Retr { msg: x },
     )(s)
 }
 
@@ -111,7 +109,7 @@ pub(crate) fn dele_parser(s: &[u8]) -> IResult<&[u8], Dele> {
             map(digit1, parse_u8_slice_to_usize_or_0),
             tag(b"\r\n"),
         ),
-        |x| Dele { message_number: x },
+        |x| Dele { msg: x },
     )(s)
 }
 
@@ -181,10 +179,7 @@ pub(crate) fn top_parser(s: &[u8]) -> IResult<&[u8], Top> {
             ),
             tag(b"\r\n"),
         ),
-        |(x, y)| Top {
-            message_number: x,
-            line_numnber: y,
-        },
+        |(x, y)| Top { msg: x, n: y },
     )(s)
 }
 
@@ -213,11 +208,9 @@ pub(crate) fn uidl_parser(s: &[u8]) -> IResult<&[u8], Uidl> {
         ),
         |(_, x)| match x {
             Some(num) => Uidl {
-                message_number: Some(parse_u8_slice_to_usize_or_0(num)),
+                msg: Some(parse_u8_slice_to_usize_or_0(num)),
             },
-            None => Uidl {
-                message_number: None,
-            },
+            None => Uidl { msg: None },
         },
     )(s)
 }
@@ -235,44 +228,27 @@ mod tests {
 
     #[test]
     fn test_list_parser() {
-        assert_eq!(
-            list_parser(b"LIST\r\n").unwrap().1,
-            List {
-                message_number: None
-            }
-        );
+        assert_eq!(list_parser(b"LIST\r\n").unwrap().1, List { msg: None });
         assert_eq!(
             list_parser(b"LIST 123\r\n").unwrap().1,
-            List {
-                message_number: Some(123)
-            }
+            List { msg: Some(123) }
         );
     }
 
     #[test]
     fn test_list() {
-        assert_eq!(
-            list(b"LIST\r\n").unwrap(),
-            List {
-                message_number: None
-            }
-        );
-        assert_eq!(
-            list(b"LIST 2222\r\n").unwrap(),
-            List {
-                message_number: Some(2222)
-            }
-        );
+        assert_eq!(list(b"LIST\r\n").unwrap(), List { msg: None });
+        assert_eq!(list(b"LIST 2222\r\n").unwrap(), List { msg: Some(2222) });
     }
 
     #[test]
     fn test_retr() {
-        assert_eq!(retr(b"RETR 1\r\n").unwrap(), Retr { message_number: 1 });
+        assert_eq!(retr(b"RETR 1\r\n").unwrap(), Retr { msg: 1 });
     }
 
     #[test]
     fn test_dele() {
-        assert_eq!(dele(b"DELE 1\r\n").unwrap(), Dele { message_number: 1 });
+        assert_eq!(dele(b"DELE 1\r\n").unwrap(), Dele { msg: 1 });
     }
 
     #[test]
@@ -286,21 +262,10 @@ mod tests {
     }
     #[test]
     fn test_top() {
-        assert_eq!(
-            top(b"TOP 1 10\r\n").unwrap(),
-            Top {
-                message_number: 1,
-                line_numnber: 10
-            }
-        );
+        assert_eq!(top(b"TOP 1 10\r\n").unwrap(), Top { msg: 1, n: 10 });
     }
     #[test]
     fn test_uidl() {
-        assert_eq!(
-            uidl(b"UIDL 1\r\n").unwrap(),
-            Uidl {
-                message_number: Some(1)
-            }
-        );
+        assert_eq!(uidl(b"UIDL 1\r\n").unwrap(), Uidl { msg: Some(1) });
     }
 }
