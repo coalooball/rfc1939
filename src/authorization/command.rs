@@ -6,13 +6,25 @@ use nom::{
 };
 
 // ################################################################################
-/// USER name
-/// Arguments:
-///     a string identifying a mailbox (required)
-/// Restrictions:
-///     a string identifying a mailbox (required)
-/// Examples:
-///     C: USER frated
+/// USER *name*
+/// 
+/// **Arguments**
+/// 
+/// A string identifying a mailbox (required)
+/// 
+/// **Restrictions**
+/// 
+/// may only be given in the AUTHORIZATION state after the POP3
+/// greeting or after an unsuccessful USER or PASS command
+/// 
+/// **Examples**
+/// 
+/// ```rust
+/// // C: USER frated
+/// use rfc1939::authorization::command::user;
+/// use rfc1939::types::command::User;
+/// assert_eq!(user(b"USER name\r\n").unwrap(), User { name: b"name" })
+/// ```
 // ################################################################################
 pub fn user(s: &[u8]) -> Option<User> {
     match user_parser(s) {
@@ -29,13 +41,25 @@ pub(crate) fn user_parser(s: &[u8]) -> IResult<&[u8], User> {
 }
 
 // ################################################################################
-/// PASS string
-/// Arguments:
-///     a server/mailbox-specific password (required)
-/// Restrictions:
-///     a string identifying a mailbox (required)
-/// Examples:
-///     C: USER frated
+/// PASS *string*
+/// 
+/// **Arguments**
+/// 
+/// a server/mailbox-specific password (required)
+/// 
+/// **Restrictions**
+/// 
+/// may only be given in the AUTHORIZATION state immediately
+/// after a successful USER command
+/// 
+/// **Examples**
+/// 
+/// ```rust
+/// // C: PASS secret
+/// use rfc1939::authorization::command::pass;
+/// use rfc1939::types::command::Pass;
+/// assert_eq!(pass(b"PASS secret\r\n").unwrap(), Pass { string: b"secret" })
+/// ```
 // ################################################################################
 pub fn pass(s: &[u8]) -> Option<Pass> {
     match pass_parser(s) {
@@ -52,15 +76,32 @@ pub(crate) fn pass_parser(s: &[u8]) -> IResult<&[u8], Pass> {
 }
 
 // ################################################################################
-/// APOP name digest
-/// Arguments:
-///     a string identifying a mailbox and a MD5 digest string
-///     (both required)
-/// Restrictions:
-///     may only be given in the AUTHORIZATION state after the POP3
-///     greeting or after an unsuccessful USER or PASS command
-/// Examples:
-///     C: APOP mrose c4c9334bac560ecc979e58001b3e22fb
+/// APOP *name* *digest*
+/// 
+/// **Arguments**
+/// 
+/// a string identifying a mailbox and a MD5 digest string
+/// (both required)
+/// 
+/// **Restrictions**
+/// 
+/// may only be given in the AUTHORIZATION state after the POP3
+/// greeting or after an unsuccessful USER or PASS command
+/// 
+/// **Examples**
+/// 
+/// ```rust
+/// use rfc1939::authorization::command::apop;
+/// use rfc1939::types::command::Apop;
+/// // C: APOP mrose c4c9334bac560ecc979e58001b3e22fb
+/// assert_eq!(
+///     apop(b"APOP mrose c4c9334bac560ecc979e58001b3e22fb\r\n").unwrap(),
+///     Apop {
+///         name: b"mrose",
+///         digest: b"c4c9334bac560ecc979e58001b3e22fb"
+///     }
+/// )
+/// ```
 // ################################################################################
 pub fn apop(s: &[u8]) -> Option<Apop> {
     match apop_parser(s) {

@@ -29,6 +29,7 @@ pub struct Rset;
 pub struct Quit;
 
 /// A message-number (required)
+/// 
 /// A non-negative number of lines (required)
 #[derive(Debug, PartialEq)]
 pub struct Top {
@@ -55,6 +56,7 @@ pub struct Pass<'a> {
 }
 
 /// A string identifying a mailbox (required)
+/// 
 /// A MD5 digest string (required)
 #[derive(Debug, PartialEq)]
 pub struct Apop<'a> {

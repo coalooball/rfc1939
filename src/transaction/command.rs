@@ -12,9 +12,12 @@ use nom::{
 
 // ################################################################################
 /// STAT
-/// Arguments: none
-/// Examples:
-///     C: STAT
+/// 
+/// **Arguments** none
+/// 
+/// **Examples**
+/// 
+/// &nbsp;&nbsp;&nbsp;&nbsp;C: STAT
 // ################################################################################
 pub fn stat(s: &[u8]) -> Option<Stat> {
     match stat_parser(s) {
@@ -28,14 +31,21 @@ pub(crate) fn stat_parser(s: &[u8]) -> IResult<&[u8], Stat> {
 }
 
 // ################################################################################
-/// LIST [msg]
-/// Arguments:
-///     A message-number (optional)
-/// Restrictions:
-///     May only be given in the TRANSACTION state
-/// Examples:
-///     C: LIST
-///     C: LIST 2
+/// LIST \[*msg*\]
+/// 
+/// **Arguments**
+/// 
+/// A message-number (optional)
+/// 
+/// **Restrictions**
+/// 
+/// May only be given in the TRANSACTION state
+/// 
+/// **Examples**
+/// 
+/// &nbsp;&nbsp;&nbsp;&nbsp;C: LIST
+/// 
+/// &nbsp;&nbsp;&nbsp;&nbsp;C: LIST 2
 // ################################################################################
 pub fn list(s: &[u8]) -> Option<List> {
     match list_parser(s) {
@@ -60,13 +70,19 @@ pub(crate) fn list_parser(s: &[u8]) -> IResult<&[u8], List> {
 }
 
 // ################################################################################
-/// RETR msg
-/// Arguments:
-///     a message-number (required)
-/// Restrictions:
-///     may only be given in the TRANSACTION state
-/// Examples:
-///     C: RETR 1
+/// RETR *msg*
+/// 
+/// **Arguments**
+/// 
+/// a message-number (required)
+/// 
+/// **Restrictions**
+/// 
+/// may only be given in the TRANSACTION state
+/// 
+/// **Examples**
+///
+/// &nbsp;&nbsp;&nbsp;&nbsp;C: RETR 1
 // ################################################################################
 pub fn retr(s: &[u8]) -> Option<Retr> {
     match retr_parser(s) {
@@ -87,13 +103,19 @@ pub(crate) fn retr_parser(s: &[u8]) -> IResult<&[u8], Retr> {
 }
 
 // ################################################################################
-/// DELE msg
-/// Arguments:
-///     a message-number (required)
-/// Restrictions:
-///     may only be given in the TRANSACTION state
-/// Examples:
-///     C: DELE 1
+/// DELE *msg*
+/// 
+/// **Arguments**
+/// 
+/// a message-number (required)
+/// 
+/// **Restrictions**
+/// 
+/// may only be given in the TRANSACTION state
+/// 
+/// **Examples**
+/// 
+/// &nbsp;&nbsp;&nbsp;&nbsp;C: DELE 1
 // ################################################################################
 pub fn dele(s: &[u8]) -> Option<Dele> {
     match dele_parser(s) {
@@ -115,11 +137,16 @@ pub(crate) fn dele_parser(s: &[u8]) -> IResult<&[u8], Dele> {
 
 // ################################################################################
 /// NOOP
-/// Arguments: none
-/// Restrictions:
-///     may only be given in the TRANSACTION state
-/// Examples:
-///     C: NOOP
+/// 
+/// **Arguments** none
+/// 
+/// **Restrictions**
+/// 
+/// may only be given in the TRANSACTION state
+/// 
+/// **Examples**
+/// 
+/// &nbsp;&nbsp;&nbsp;&nbsp;C: NOOP
 // ################################################################################
 pub fn noop(s: &[u8]) -> Option<Noop> {
     match noop_parser(s) {
@@ -134,11 +161,16 @@ pub(crate) fn noop_parser(s: &[u8]) -> IResult<&[u8], Noop> {
 
 // ################################################################################
 /// RSET
-/// Arguments: none
-/// Restrictions:
-///     may only be given in the TRANSACTION state
-/// Examples:
-///     C: RSET
+/// 
+/// **Arguments** none
+/// 
+/// **Restrictions**
+/// 
+/// may only be given in the TRANSACTION state
+/// 
+/// **Examples**
+/// 
+/// &nbsp;&nbsp;&nbsp;&nbsp;C: RSET
 // ################################################################################
 pub fn rset(s: &[u8]) -> Option<Rset> {
     match rset_parser(s) {
@@ -152,14 +184,21 @@ pub(crate) fn rset_parser(s: &[u8]) -> IResult<&[u8], Rset> {
 }
 
 // ################################################################################
-/// TOP msg n
-/// Arguments:
-///     a message-number (required)
-///     a non-negative number of lines (required)
-/// Restrictions:
-///     may only be given in the TRANSACTION state
-/// Examples:
-///     C: TOP 20 20
+/// TOP *msg* *n*
+/// 
+/// **Arguments**
+/// 
+/// a message-number (required)
+/// 
+/// a non-negative number of lines (required)
+/// 
+/// **Restrictions**
+/// 
+/// may only be given in the TRANSACTION state
+/// 
+/// **Examples**
+/// 
+/// &nbsp;&nbsp;&nbsp;&nbsp;C: TOP 20 20
 // ################################################################################
 pub fn top(s: &[u8]) -> Option<Top> {
     match top_parser(s) {
@@ -184,14 +223,21 @@ pub(crate) fn top_parser(s: &[u8]) -> IResult<&[u8], Top> {
 }
 
 // ################################################################################
-/// UIDL [msg]
-/// Arguments:
-///     A message-number (optional)
-/// Restrictions:
-///     May only be given in the TRANSACTION state
-/// Examples:
-///     C: UIDL
-///     C: UIDL 2
+/// UIDL \[*msg*\]
+/// 
+/// **Arguments**
+/// 
+/// A message-number (optional)
+/// 
+/// **Restrictions**
+/// 
+/// May only be given in the TRANSACTION state
+/// 
+/// **Examples**
+/// 
+/// &nbsp;&nbsp;&nbsp;&nbsp;C: UIDL
+/// 
+/// &nbsp;&nbsp;&nbsp;&nbsp;C: UIDL 2
 // ################################################################################
 pub fn uidl(s: &[u8]) -> Option<Uidl> {
     match uidl_parser(s) {

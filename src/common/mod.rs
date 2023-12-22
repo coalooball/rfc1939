@@ -1,3 +1,5 @@
+//! Common functions
+
 use crate::types::response::*;
 use nom::{
     branch::alt,

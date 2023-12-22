@@ -4,24 +4,32 @@ use nom::IResult;
 
 // ################################################################################
 /// QUIT
-/// Restrictions: none
-/// Discussion:
-///     The POP3 server removes all messages marked as deleted
-///     from the maildrop and replies as to the status of this
-///     operation.  If there is an error, such as a resource
-///     shortage, encountered while removing messages, the
-///     maildrop may result in having some or none of the messages
-///     marked as deleted be removed.  In no case may the server
-///     remove any messages not marked as deleted.
-
-///     Whether the removal was successful or not, the server
-///     then releases any exclusive-access lock on the maildrop
-///     and closes the TCP connection.
-/// Possible Responses:
-///     +OK
-///     -ERR some deleted messages not removed
-/// Examples:
-///     S: +OK dewey POP3 server signing off (maildrop empty)
+/// 
+/// **Restrictions** none
+/// 
+/// **Discussion**
+/// 
+/// The POP3 server removes all messages marked as deleted
+/// from the maildrop and replies as to the status of this
+/// operation.  If there is an error, such as a resource
+/// shortage, encountered while removing messages, the
+/// maildrop may result in having some or none of the messages
+/// marked as deleted be removed.  In no case may the server
+/// remove any messages not marked as deleted.
+///
+/// Whether the removal was successful or not, the server
+/// then releases any exclusive-access lock on the maildrop
+/// and closes the TCP connection.
+/// 
+/// **Possible Responses**
+/// 
+/// &nbsp;&nbsp;&nbsp;&nbsp;+OK
+/// 
+/// &nbsp;&nbsp;&nbsp;&nbsp;-ERR some deleted messages not removed
+/// 
+/// **Examples**
+/// 
+/// &nbsp;&nbsp;&nbsp;&nbsp;S: +OK dewey POP3 server signing off (maildrop empty)
 // ################################################################################
 pub fn quit(s: &[u8]) -> Option<Quit> {
     match quit_parser(s) {

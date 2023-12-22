@@ -8,10 +8,14 @@ use nom::{
 
 // ################################################################################
 /// QUIT
-/// Arguments: none
-/// Restrictions: none
-/// Examples:
-///     C: QUIT
+/// 
+/// **Arguments** none
+/// 
+/// **Restrictions** none
+/// 
+/// **Examples**
+/// 
+/// &nbsp;&nbsp;&nbsp;&nbsp;C: QUIT
 // ################################################################################
 pub fn quit(s: &[u8]) -> Option<Quit> {
     match quit_parser(s) {

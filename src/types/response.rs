@@ -1,7 +1,9 @@
 use crate::common::StatusIndicator;
 
 /// Greeting
+/// 
 /// StatusIndicator, Status Indicator stand for +OK/-ERR
+/// 
 /// &[u8], message
 #[derive(Debug, PartialEq)]
 pub struct Greeting<'a> {
@@ -10,7 +12,9 @@ pub struct Greeting<'a> {
 }
 
 /// Quit
+/// 
 /// StatusIndicator, Status Indicator stand for +OK/-ERR
+/// 
 /// &[u8], message
 #[derive(Debug, PartialEq)]
 pub struct Quit<'a> {
@@ -114,9 +118,13 @@ impl<'a> OneLine<'a> for OneLineTwoParts<'a> {
 }
 
 /// STAT
+/// 
 /// StatusIndicator, Status Indicator stand for +OK/-ERR
+/// 
 /// usize, the number of messages in the maildrop
+/// 
 /// usize, the size of the maildrop in octets
+/// 
 /// &[u8], message
 #[derive(Debug, PartialEq)]
 pub struct Stat<'a> {
@@ -129,11 +137,14 @@ pub struct Stat<'a> {
 // -- Code Block in which item have a list contains paired informations.
 // ################################################################################
 
-/// LIST [msg]
+/// LIST \[*msg*\]
+/// 
 /// StatusIndicator, Status Indicator stand for +OK/-ERR
+/// 
 /// Vec<(usize, usize)>, A vector containing tuple in which
 ///     left usize is message-number and
 ///     right usize is size of the message in octets
+/// 
 /// &[u8], message
 #[derive(Debug, PartialEq)]
 pub struct List<'a> {
@@ -142,11 +153,14 @@ pub struct List<'a> {
     pub information: &'a [u8],
 }
 
-/// UIDL [msg]
+/// UIDL \[*msg*\]
+/// 
 /// StatusIndicator, Status Indicator stand for +OK/-ERR
+/// 
 /// Vec<(usize, usize)>, A vector containing tuple in which
 ///     left usize is message-number and
 ///     right usize is size of the message in octets
+/// 
 /// &[u8], message
 #[derive(Debug, PartialEq)]
 pub struct Uidl<'a> {
@@ -167,8 +181,11 @@ pub trait HaveMessageBody<'a>: Default {
     fn set_information(&mut self, information: &'a [u8]);
 }
 /// RETR msg
+/// 
 /// StatusIndicator, Status Indicator stand for +OK/-ERR
+/// 
 /// &[u8], A slice containing message body
+/// 
 /// &[u8], message
 #[derive(Debug, PartialEq)]
 pub struct Retr<'a> {
@@ -200,8 +217,11 @@ impl<'a> HaveMessageBody<'a> for Retr<'a> {
 }
 
 /// TOP msg n
+/// 
 /// StatusIndicator, Status Indicator stand for +OK/-ERR
+/// 
 /// &[u8], A slice containing message body
+/// 
 /// &[u8], message
 #[derive(Debug, PartialEq)]
 pub struct Top<'a> {
@@ -236,7 +256,9 @@ impl<'a> HaveMessageBody<'a> for Top<'a> {
 // -- Code Block in which item have email body. --
 
 /// DELE msg
+/// 
 /// StatusIndicator, Status Indicator stand for +OK/-ERR
+/// 
 /// &[u8], message
 #[derive(Debug, PartialEq)]
 pub struct Dele<'a> {
@@ -272,7 +294,9 @@ impl<'a> OneLine<'a> for Dele<'a> {
 }
 
 /// NOOP
+/// 
 /// StatusIndicator, Status Indicator stand for +OK/-ERR
+/// 
 /// &[u8], message
 #[derive(Debug, PartialEq)]
 pub struct Noop<'a> {
@@ -308,7 +332,9 @@ impl<'a> OneLine<'a> for Noop<'a> {
 }
 
 /// RSET
+/// 
 /// StatusIndicator, Status Indicator stand for +OK/-ERR
+/// 
 /// &[u8], message
 #[derive(Debug, PartialEq)]
 pub struct Rset<'a> {
@@ -344,7 +370,9 @@ impl<'a> OneLine<'a> for Rset<'a> {
 }
 
 /// USER
+/// 
 /// StatusIndicator, Status Indicator stand for +OK/-ERR
+/// 
 /// &[u8], message
 #[derive(Debug, PartialEq)]
 pub struct User<'a> {
@@ -380,7 +408,9 @@ impl<'a> OneLine<'a> for User<'a> {
 }
 
 /// PASS
+/// 
 /// StatusIndicator, Status Indicator stand for +OK/-ERR
+/// 
 /// &[u8], message
 #[derive(Debug, PartialEq)]
 pub struct Pass<'a> {
@@ -416,7 +446,9 @@ impl<'a> OneLine<'a> for Pass<'a> {
 }
 
 /// APOP
+/// 
 /// StatusIndicator, Status Indicator stand for +OK/-ERR
+/// 
 /// &[u8], message
 #[derive(Debug, PartialEq)]
 pub struct Apop<'a> {

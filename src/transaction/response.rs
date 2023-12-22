@@ -17,12 +17,16 @@ use nom::{
 
 // ################################################################################
 /// STAT
-/// Restrictions:
-///     may only be given in the TRANSACTION state
-/// Discussion:
-///     The positive response consists of "+OK" followed by a single
-///     space, the number of messages in the maildrop, a single
-///     space, and the size of the maildrop in octets.
+/// 
+/// **Restrictions**
+/// 
+/// may only be given in the TRANSACTION state
+/// 
+/// **Discussion**
+/// 
+/// The positive response consists of "+OK" followed by a single
+/// space, the number of messages in the maildrop, a single
+/// space, and the size of the maildrop in octets.
 // ################################################################################
 pub fn stat(s: &[u8]) -> Option<Stat> {
     match stat_parser(s) {
@@ -61,37 +65,41 @@ pub(crate) fn stat_parser(s: &[u8]) -> IResult<&[u8], Stat> {
 }
 
 // ################################################################################
-/// LIST [msg]
-/// Restrictions:
-///     may only be given in the TRANSACTION state
-/// Discussion:
-///     If an argument was given and the POP3 server issues a
-///     positive response with a line containing information for
-///     that message.  This line is called a "scan listing" for
-///     that message.
-
-///     If no argument was given and the POP3 server issues a
-///     positive response, then the response given is multi-line.
-///     After the initial +OK, for each message in the maildrop,
-///     the POP3 server responds with a line containing
-///     information for that message.  This line is also called a
-///     "scan listing" for that message.  If there are no
-///     messages in the maildrop, then the POP3 server responds
-///     with no scan listings--it issues a positive response
-///     followed by a line containing a termination octet and a
-///     CRLF pair.
-
-///     In order to simplify parsing, all POP3 servers are
-///     required to use a certain format for scan listings.  A
-///     scan listing consists of the message-number of the
-///     message, followed by a single space and the exact size of
-///     the message in octets.  Methods for calculating the exact
-///     size of the message are described in the "Message Format"
-///     section below.  This memo makes no requirement on what
-///     follows the message size in the scan listing.  Minimal
-///     implementations should just end that line of the response
-///     with a CRLF pair.  More advanced implementations may
-///     include other information, as parsed from the message.
+/// LIST \[*msg*\]
+/// 
+/// **Restrictions**
+/// 
+/// may only be given in the TRANSACTION state
+/// 
+/// **Discussion**
+/// 
+/// If an argument was given and the POP3 server issues a
+/// positive response with a line containing information for
+/// that message.  This line is called a "scan listing" for
+/// that message.
+/// 
+/// If no argument was given and the POP3 server issues a
+/// positive response, then the response given is multi-line.
+/// After the initial +OK, for each message in the maildrop,
+/// the POP3 server responds with a line containing
+/// information for that message.  This line is also called a
+/// "scan listing" for that message.  If there are no
+/// messages in the maildrop, then the POP3 server responds
+/// with no scan listings--it issues a positive response
+/// followed by a line containing a termination octet and a
+/// CRLF pair.
+///
+/// In order to simplify parsing, all POP3 servers are
+/// required to use a certain format for scan listings.  A
+/// scan listing consists of the message-number of the
+/// message, followed by a single space and the exact size of
+/// the message in octets.  Methods for calculating the exact
+/// size of the message are described in the "Message Format"
+/// section below.  This memo makes no requirement on what
+/// follows the message size in the scan listing.  Minimal
+/// implementations should just end that line of the response
+/// with a CRLF pair.  More advanced implementations may
+/// include other information, as parsed from the message.
 // ################################################################################
 pub fn list(s: &[u8]) -> Option<List> {
     match list_parser(s) {
@@ -165,18 +173,25 @@ fn list_one_line_parser(s: &[u8]) -> IResult<&[u8], List> {
 }
 
 // ################################################################################
-/// RETR msg
-/// Restrictions:
-///     may only be given in the TRANSACTION state
-/// Discussion:
-///     If the POP3 server issues a positive response, then the
-///     response given is multi-line.  After the initial +OK, the
-///     POP3 server sends the message corresponding to the given
-///     message-number, being careful to byte-stuff the termination
-///     character (as with all multi-line responses).
-/// Possible Responses:
-///     +OK message follows
-///     -ERR no such message
+/// RETR *msg*
+/// 
+/// **Restrictions**
+/// 
+/// may only be given in the TRANSACTION state
+/// 
+/// **Discussion**
+/// 
+/// If the POP3 server issues a positive response, then the
+/// response given is multi-line.  After the initial +OK, the
+/// POP3 server sends the message corresponding to the given
+/// message-number, being careful to byte-stuff the termination
+/// character (as with all multi-line responses).
+/// 
+/// **Possible Responses**
+/// 
+/// &nbsp;&nbsp;&nbsp;&nbsp;+OK message follows
+/// 
+/// &nbsp;&nbsp;&nbsp;&nbsp;-ERR no such message
 // ################################################################################
 pub fn retr(s: &[u8]) -> Option<Retr> {
     match retr_parser(s) {
@@ -190,23 +205,31 @@ pub(crate) fn retr_parser(s: &[u8]) -> IResult<&[u8], Retr> {
 }
 
 // ################################################################################
-/// TOP msg n
-/// Restrictions:
-///     may only be given in the TRANSACTION state
-/// Discussion:
-///     If the POP3 server issues a positive response, then the
-///     response given is multi-line.  After the initial +OK, the
-///     POP3 server sends the headers of the message, the blank
-///     line separating the headers from the body, and then the
-///     number of lines of the indicated message's body, being
-///     careful to byte-stuff the termination character (as with
-///     all multi-line responses).
-///     Note that if the number of lines requested by the POP3
-///     client is greater than than the number of lines in the
-///     body, then the POP3 server sends the entire message.
-/// Possible Responses:
-///     +OK top of message follows
-///     -ERR no such message
+/// TOP *msg* *n*
+/// 
+/// **Restrictions**
+/// 
+/// may only be given in the TRANSACTION state
+/// 
+/// **Discussion**
+/// 
+/// If the POP3 server issues a positive response, then the
+/// response given is multi-line.  After the initial +OK, the
+/// POP3 server sends the headers of the message, the blank
+/// line separating the headers from the body, and then the
+/// number of lines of the indicated message's body, being
+/// careful to byte-stuff the termination character (as with
+/// all multi-line responses).
+/// 
+/// Note that if the number of lines requested by the POP3
+/// client is greater than than the number of lines in the
+/// body, then the POP3 server sends the entire message.
+/// 
+/// **Possible Responses**
+/// 
+/// &nbsp;&nbsp;&nbsp;&nbsp;+OK top of message follows
+/// 
+/// &nbsp;&nbsp;&nbsp;&nbsp;-ERR no such message
 // ################################################################################
 pub fn top(s: &[u8]) -> Option<Top> {
     match top_parser(s) {
@@ -220,21 +243,31 @@ pub(crate) fn top_parser(s: &[u8]) -> IResult<&[u8], Top> {
 }
 
 // ################################################################################
-/// DELE msg
-/// Restrictions:
-///     may only be given in the TRANSACTION state
-/// Discussion:
-///     The POP3 server marks the message as deleted.  Any future
-///     reference to the message-number associated with the message
-///     in a POP3 command generates an error.  The POP3 server does
-///     not actually delete the message until the POP3 session
-///     enters the UPDATE state.
-/// Possible Responses:
-///     +OK message deleted
-///     -ERR no such message
+/// DELE *msg*
+/// 
+/// **Restrictions**
+/// 
+/// may only be given in the TRANSACTION state
+/// 
+/// **Discussion**
+/// 
+/// The POP3 server marks the message as deleted.  Any future
+/// reference to the message-number associated with the message
+/// in a POP3 command generates an error.  The POP3 server does
+/// not actually delete the message until the POP3 session
+/// enters the UPDATE state.
+/// 
+/// **Possible Responses**
+/// 
+/// &nbsp;&nbsp;&nbsp;&nbsp;+OK message deleted
+/// 
+/// &nbsp;&nbsp;&nbsp;&nbsp;-ERR no such message
+/// 
 /// Examples:
-///     S: +OK message 1 deleted
-///     S: -ERR message 2 already deleted
+/// 
+/// &nbsp;&nbsp;&nbsp;&nbsp;S: +OK message 1 deleted
+/// 
+/// &nbsp;&nbsp;&nbsp;&nbsp;S: -ERR message 2 already deleted
 // ################################################################################
 pub fn dele(s: &[u8]) -> Option<Dele> {
     match dele_parser(s) {
@@ -249,15 +282,23 @@ pub(crate) fn dele_parser(s: &[u8]) -> IResult<&[u8], Dele> {
 
 // ################################################################################
 /// NOOP
-/// Restrictions:
-///     may only be given in the TRANSACTION state
-/// Discussion:
-///     The POP3 server does nothing, it merely replies with a
-///     positive response.
-/// Possible Responses:
-///     +OK
-/// Examples:
-///     S: +OK
+/// 
+/// **Restrictions**
+/// 
+/// may only be given in the TRANSACTION state
+/// 
+/// **Discussion**
+/// 
+/// The POP3 server does nothing, it merely replies with a
+/// positive response.
+/// 
+/// **Possible Responses**
+/// 
+/// &nbsp;&nbsp;&nbsp;&nbsp;+OK
+/// 
+/// **Examples**
+/// 
+/// &nbsp;&nbsp;&nbsp;&nbsp;S: +OK
 // ################################################################################
 pub fn noop(s: &[u8]) -> Option<Noop> {
     match noop_parser(s) {
@@ -272,16 +313,24 @@ pub(crate) fn noop_parser(s: &[u8]) -> IResult<&[u8], Noop> {
 
 // ################################################################################
 /// RSET
-/// Restrictions:
-///     may only be given in the TRANSACTION state
-/// Discussion:
-///     If any messages have been marked as deleted by the POP3
-///     server, they are unmarked.  The POP3 server then replies
-///     with a positive response.
-/// Possible Responses:
-///     +OK
-/// Examples:
-///     S: +OK maildrop has 2 messages (320 octets)
+/// 
+/// **Restrictions**
+/// 
+/// may only be given in the TRANSACTION state
+/// 
+/// **Discussion**
+/// 
+/// If any messages have been marked as deleted by the POP3
+/// server, they are unmarked.  The POP3 server then replies
+/// with a positive response.
+/// 
+/// **Possible Responses**
+/// 
+/// &nbsp;&nbsp;&nbsp;&nbsp;+OK
+/// 
+/// **Examples**
+/// 
+/// &nbsp;&nbsp;&nbsp;&nbsp;S: +OK maildrop has 2 messages (320 octets)
 // ################################################################################
 pub fn rset(s: &[u8]) -> Option<Rset> {
     match rset_parser(s) {
@@ -295,43 +344,47 @@ pub(crate) fn rset_parser(s: &[u8]) -> IResult<&[u8], Rset> {
 }
 
 // ################################################################################
-/// UIDL [msg]
-/// Restrictions:
-///     may only be given in the TRANSACTION state
-/// Discussion:
-///     If an argument was given and the POP3 server issues a positive
-///     response with a line containing information for that message.
-///     This line is called a "unique-id listing" for that message.
+/// UIDL \[*msg*\]
+/// 
+/// **Restrictions**
+/// 
+/// may only be given in the TRANSACTION state
+/// 
+/// **Discussion**
+/// 
+/// If an argument was given and the POP3 server issues a positive
+/// response with a line containing information for that message.
+/// This line is called a "unique-id listing" for that message.
+/// 
+/// If no argument was given and the POP3 server issues a positive
+/// response, then the response given is multi-line.  After the
+/// initial +OK, for each message in the maildrop, the POP3 server
+/// responds with a line containing information for that message.
+/// This line is called a "unique-id listing" for that message.
+///
+/// In order to simplify parsing, all POP3 servers are required to
+/// use a certain format for unique-id listings.  A unique-id
+/// listing consists of the message-number of the message,
+/// followed by a single space and the unique-id of the message.
+/// No information follows the unique-id in the unique-id listing.
+/// 
+/// The unique-id of a message is an arbitrary server-determined
+/// string, consisting of one to 70 characters in the range 0x21
+/// to 0x7E, which uniquely identifies a message within a
+/// maildrop and which persists across sessions.  This
+/// persistence is required even if a session ends without
+/// entering the UPDATE state.  The server should never reuse an
+/// unique-id in a given maildrop, for as long as the entity
+/// using the unique-id exists.
+///
+/// Note that messages marked as deleted are not listed.
 
-///     If no argument was given and the POP3 server issues a positive
-///     response, then the response given is multi-line.  After the
-///     initial +OK, for each message in the maildrop, the POP3 server
-///     responds with a line containing information for that message.
-///     This line is called a "unique-id listing" for that message.
-
-///     In order to simplify parsing, all POP3 servers are required to
-///     use a certain format for unique-id listings.  A unique-id
-///     listing consists of the message-number of the message,
-///     followed by a single space and the unique-id of the message.
-///     No information follows the unique-id in the unique-id listing.
-
-///     The unique-id of a message is an arbitrary server-determined
-///     string, consisting of one to 70 characters in the range 0x21
-///     to 0x7E, which uniquely identifies a message within a
-///     maildrop and which persists across sessions.  This
-///     persistence is required even if a session ends without
-///     entering the UPDATE state.  The server should never reuse an
-///     unique-id in a given maildrop, for as long as the entity
-///     using the unique-id exists.
-
-///     Note that messages marked as deleted are not listed.
-
-///     While it is generally preferable for server implementations
-///     to store arbitrarily assigned unique-ids in the maildrop,
-///     this specification is intended to permit unique-ids to be
-///     calculated as a hash of the message.  Clients should be able
-///     to handle a situation where two identical copies of a
-///     message in a maildrop have the same unique-id.
+/// While it is generally preferable for server implementations
+/// to store arbitrarily assigned unique-ids in the maildrop,
+/// this specification is intended to permit unique-ids to be
+/// calculated as a hash of the message.  Clients should be able
+/// to handle a situation where two identical copies of a
+/// message in a maildrop have the same unique-id.
 // ################################################################################
 pub fn uidl(s: &[u8]) -> Option<Uidl> {
     match uidl_parser(s) {
