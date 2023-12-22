@@ -47,3 +47,9 @@ pub struct Uidl {
 pub struct User<'a> {
     pub name: &'a [u8],
 }
+
+/// A server/mailbox-specific password (required)
+#[derive(Debug, PartialEq)]
+pub struct Pass<'a> {
+    pub string: &'a [u8],
+}

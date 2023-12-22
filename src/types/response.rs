@@ -378,3 +378,39 @@ impl<'a> OneLine<'a> for User<'a> {
         self.message = message;
     }
 }
+
+/// PASS
+/// StatusIndicator, Status Indicator stand for +OK/-ERR
+/// &[u8], message
+#[derive(Debug, PartialEq)]
+pub struct Pass<'a> {
+    pub status_indicator: StatusIndicator,
+    pub message: &'a [u8],
+}
+
+impl Default for Pass<'_> {
+    fn default() -> Self {
+        Pass {
+            status_indicator: StatusIndicator::OK,
+            message: &[],
+        }
+    }
+}
+
+impl<'a> OneLine<'a> for Pass<'a> {
+    fn status_indicator(&self) -> &StatusIndicator {
+        &self.status_indicator
+    }
+
+    fn set_status_indicator(&mut self, si: StatusIndicator) {
+        self.status_indicator = si;
+    }
+
+    fn message(&self) -> &[u8] {
+        &self.message
+    }
+
+    fn set_message(&mut self, message: &'a [u8]) {
+        self.message = message;
+    }
+}
