@@ -41,3 +41,9 @@ pub struct Top {
 pub struct Uidl {
     pub message_number: Option<usize>,
 }
+
+/// A string identifying a mailbox (required)
+#[derive(Debug, PartialEq)]
+pub struct User<'a> {
+    pub name: &'a [u8],
+}

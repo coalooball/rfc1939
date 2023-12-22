@@ -33,6 +33,44 @@ pub(crate) fn quit_parser(s: &[u8]) -> IResult<&[u8], Quit> {
     one_line_response_two_parts_parser::<Quit>(s)
 }
 
+// ################################################################################
+/// USER name
+/// Restrictions:
+///     may only be given in the AUTHORIZATION state after the POP3
+///     greeting or after an unsuccessful USER or PASS command
+/// Discussion:
+///     To authenticate using the USER and PASS command
+///     combination, the client must first issue the USER
+///     command.  If the POP3 server responds with a positive
+///     status indicator ("+OK"), then the client may issue
+///     either the PASS command to complete the authentication,
+///     or the QUIT command to terminate the POP3 session.  If
+///     the POP3 server responds with a negative status indicator
+///     ("-ERR") to the USER command, then the client may either
+///     issue a new authentication command or may issue the QUIT
+///     command.
+
+///     The server may return a positive response even though no
+///     such mailbox exists.  The server may return a negative
+///     response if mailbox exists, but does not permit plaintext
+///     password authentication.
+///     Possible Responses:
+///         +OK name is a valid mailbox
+///         -ERR never heard of mailbox name
+///     Examples:
+///         S: +OK mrose is a real hoopy frood
+// ################################################################################
+pub fn user(s: &[u8]) -> Option<User> {
+    match user_parser(s) {
+        Ok((_, x)) => Some(x),
+        Err(_) => None,
+    }
+}
+
+pub(crate) fn user_parser(s: &[u8]) -> IResult<&[u8], User> {
+    one_line_response_two_parts_parser::<User>(s)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -66,6 +104,17 @@ mod tests {
             Quit {
                 status_indicator: StatusIndicator::OK,
                 message: b"dewey POP3 server signing off"
+            }
+        )
+    }
+
+    #[test]
+    fn test_user() {
+        assert_eq!(
+            user(b"+OK successfully\r\n").unwrap(),
+            User {
+                status_indicator: StatusIndicator::OK,
+                message: b"successfully"
             }
         )
     }
