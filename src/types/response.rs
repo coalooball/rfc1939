@@ -126,6 +126,9 @@ pub struct Stat<'a> {
     pub message: &'a [u8],
 }
 
+// -- Code Block in which item have a list contains paired informations.
+// ################################################################################
+
 /// LIST [msg]
 /// StatusIndicator, Status Indicator stand for +OK/-ERR
 /// Vec<(usize, usize)>, A vector containing tuple in which
@@ -138,7 +141,26 @@ pub struct List<'a> {
     pub informations: Vec<(usize, usize)>,
     pub message: &'a [u8],
 }
+
+/// UIDL [msg]
+/// StatusIndicator, Status Indicator stand for +OK/-ERR
+/// Vec<(usize, usize)>, A vector containing tuple in which
+///     left usize is message-number and
+///     right usize is size of the message in octets
+/// &[u8], message
+#[derive(Debug, PartialEq)]
+pub struct Uidl<'a> {
+    pub status_indicator: StatusIndicator,
+    pub informations: Vec<(usize, &'a [u8])>,
+    pub message: &'a [u8],
+}
+
 // ################################################################################
+// -- Code Block in which item have a list contains paired informations. --
+
+// -- Code Block in which item have email body.
+// ################################################################################
+// Both RETR and TOP may have a email body.
 pub trait HaveMessageBody<'a>: Default {
     fn set_status_indicator(&mut self, si: StatusIndicator);
     fn set_message_body(&mut self, body: Option<&'a [u8]>);
@@ -211,6 +233,7 @@ impl<'a> HaveMessageBody<'a> for Top<'a> {
 }
 
 // ################################################################################
+// -- Code Block in which item have email body. --
 
 /// DELE msg
 /// StatusIndicator, Status Indicator stand for +OK/-ERR

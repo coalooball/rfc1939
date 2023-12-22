@@ -2,7 +2,7 @@ use crate::common::{
     one_line_response_two_parts_parser, parse_u8_slice_to_usize_or_0, retr_message_parser,
     take_until_crlf, StatusIndicator,
 };
-use crate::types::response::{Dele, List, Noop, OneLineTwoParts, Retr, Rset, Stat, Top};
+use crate::types::response::{Dele, List, Noop, OneLineTwoParts, Retr, Rset, Stat, Top, Uidl};
 use nom::{
     branch::alt,
     bytes::complete::{tag, tag_no_case},
@@ -294,6 +294,116 @@ pub(crate) fn rset_parser(s: &[u8]) -> IResult<&[u8], Rset> {
     one_line_response_two_parts_parser::<Rset>(s)
 }
 
+// ################################################################################
+/// UIDL [msg]
+/// Restrictions:
+///     may only be given in the TRANSACTION state
+/// Discussion:
+///     If an argument was given and the POP3 server issues a positive
+///     response with a line containing information for that message.
+///     This line is called a "unique-id listing" for that message.
+
+///     If no argument was given and the POP3 server issues a positive
+///     response, then the response given is multi-line.  After the
+///     initial +OK, for each message in the maildrop, the POP3 server
+///     responds with a line containing information for that message.
+///     This line is called a "unique-id listing" for that message.
+
+///     In order to simplify parsing, all POP3 servers are required to
+///     use a certain format for unique-id listings.  A unique-id
+///     listing consists of the message-number of the message,
+///     followed by a single space and the unique-id of the message.
+///     No information follows the unique-id in the unique-id listing.
+
+///     The unique-id of a message is an arbitrary server-determined
+///     string, consisting of one to 70 characters in the range 0x21
+///     to 0x7E, which uniquely identifies a message within a
+///     maildrop and which persists across sessions.  This
+///     persistence is required even if a session ends without
+///     entering the UPDATE state.  The server should never reuse an
+///     unique-id in a given maildrop, for as long as the entity
+///     using the unique-id exists.
+
+///     Note that messages marked as deleted are not listed.
+
+///     While it is generally preferable for server implementations
+///     to store arbitrarily assigned unique-ids in the maildrop,
+///     this specification is intended to permit unique-ids to be
+///     calculated as a hash of the message.  Clients should be able
+///     to handle a situation where two identical copies of a
+///     message in a maildrop have the same unique-id.
+// ################################################################################
+pub fn uidl(s: &[u8]) -> Option<Uidl> {
+    match uidl_parser(s) {
+        Ok((_, x)) => Some(x),
+        Err(_) => None,
+    }
+}
+
+pub(crate) fn uidl_parser(s: &[u8]) -> IResult<&[u8], Uidl> {
+    alt((uidl_multi_line_parser, uidl_one_line_parser))(s)
+}
+
+fn uidl_multi_line_parser(s: &[u8]) -> IResult<&[u8], Uidl> {
+    map(
+        terminated(
+            tuple((
+                map(tag_no_case(b"+OK"), |_| StatusIndicator::OK),
+                map(opt(preceded(tag(b" "), take_until_crlf)), |x| {
+                    if let Some(msg) = x {
+                        msg
+                    } else {
+                        &[]
+                    }
+                }),
+                many1(preceded(
+                    tag(b"\r\n"),
+                    separated_pair(
+                        map(digit1, parse_u8_slice_to_usize_or_0),
+                        tag(b" "),
+                        take_until_crlf,
+                    ),
+                )),
+            )),
+            tag(b"\r\n.\r\n"),
+        ),
+        |(si, msg, infos)| Uidl {
+            status_indicator: si,
+            informations: infos,
+            message: msg,
+        },
+    )(s)
+}
+
+fn uidl_one_line_parser(s: &[u8]) -> IResult<&[u8], Uidl> {
+    alt((
+        map(
+            terminated(
+                tuple((
+                    map(tag_no_case(b"+OK"), |_| StatusIndicator::OK),
+                    tag(b" "),
+                    map(digit1, parse_u8_slice_to_usize_or_0),
+                    tag(b" "),
+                    take_until_crlf,
+                )),
+                tag(b"\r\n"),
+            ),
+            |(si, _, num, _, size)| Uidl {
+                status_indicator: si,
+                informations: vec![(num, size)],
+                message: &[],
+            },
+        ),
+        map(one_line_response_two_parts_parser::<OneLineTwoParts>, |x| {
+            Uidl {
+                status_indicator: x.left,
+                informations: vec![],
+                message: x.right,
+            }
+        }),
+    ))(s)
+}
+
 #[test]
 fn test_stat_parser() {
     assert_eq!(
@@ -445,6 +555,34 @@ mod tests {
                 status_indicator: StatusIndicator::OK,
                 message_body: Some(b"58.87.109.78"),
                 message: b"1364"
+            }
+        );
+    }
+
+    #[test]
+    fn test_uidl() {
+        assert_eq!(
+            uidl(b"+OK\r\n1 whqtswO00WBw418f9t5JxYwZ\r\n2 QhdPYR:00WBw1Ph7x7\r\n.\r\n").unwrap(),
+            Uidl {
+                status_indicator: StatusIndicator::OK,
+                informations: vec![(1, b"whqtswO00WBw418f9t5JxYwZ"), (2, b"QhdPYR:00WBw1Ph7x7")],
+                message: &vec![]
+            }
+        );
+        assert_eq!(
+            uidl(b"+OK 1 whqtswO00WBw418f9t5JxYwZ%\r\n").unwrap(),
+            Uidl {
+                status_indicator: StatusIndicator::OK,
+                informations: vec![(1, b"whqtswO00WBw418f9t5JxYwZ%")],
+                message: &vec![]
+            }
+        );
+        assert_eq!(
+            uidl(b"-ERR Syntax error\r\n").unwrap(),
+            Uidl {
+                status_indicator: StatusIndicator::ERR,
+                informations: vec![],
+                message: b"Syntax error"
             }
         );
     }

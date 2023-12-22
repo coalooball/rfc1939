@@ -27,9 +27,17 @@ pub struct Rset;
 
 #[derive(Debug, PartialEq)]
 pub struct Quit;
-/// a non-negative number of lines (required)
+
+/// A message-number (required)
+/// A non-negative number of lines (required)
 #[derive(Debug, PartialEq)]
 pub struct Top {
     pub message_number: usize,
     pub line_numnber: usize,
+}
+
+/// A message-number (optional)
+#[derive(Debug, PartialEq)]
+pub struct Uidl {
+    pub message_number: Option<usize>,
 }

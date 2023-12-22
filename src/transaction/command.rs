@@ -1,5 +1,5 @@
 use crate::common::parse_u8_slice_to_usize_or_0;
-use crate::types::command::{Dele, List, Noop, Retr, Rset, Stat, Top};
+use crate::types::command::{Dele, List, Noop, Retr, Rset, Stat, Top, Uidl};
 use nom::sequence::separated_pair;
 use nom::{
     bytes::complete::{tag, tag_no_case},
@@ -188,6 +188,40 @@ pub(crate) fn top_parser(s: &[u8]) -> IResult<&[u8], Top> {
     )(s)
 }
 
+// ################################################################################
+/// UIDL [msg]
+/// Arguments:
+///     A message-number (optional)
+/// Restrictions:
+///     May only be given in the TRANSACTION state
+/// Examples:
+///     C: UIDL
+///     C: UIDL 2
+// ################################################################################
+pub fn uidl(s: &[u8]) -> Option<Uidl> {
+    match uidl_parser(s) {
+        Ok((_, x)) => Some(x),
+        Err(_) => None,
+    }
+}
+
+pub(crate) fn uidl_parser(s: &[u8]) -> IResult<&[u8], Uidl> {
+    map(
+        terminated(
+            tuple((tag_no_case(b"UIDL"), opt(preceded(tag(b" "), digit1)))),
+            tag(b"\r\n"),
+        ),
+        |(_, x)| match x {
+            Some(num) => Uidl {
+                message_number: Some(parse_u8_slice_to_usize_or_0(num)),
+            },
+            None => Uidl {
+                message_number: None,
+            },
+        },
+    )(s)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -257,6 +291,15 @@ mod tests {
             Top {
                 message_number: 1,
                 line_numnber: 10
+            }
+        );
+    }
+    #[test]
+    fn test_uidl() {
+        assert_eq!(
+            uidl(b"UIDL 1\r\n").unwrap(),
+            Uidl {
+                message_number: Some(1)
             }
         );
     }
