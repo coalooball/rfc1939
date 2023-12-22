@@ -1,6 +1,9 @@
-use crate::common::take_until_crlf_consume_crlf;
-use crate::types::command::{Pass, User};
-use nom::{bytes::complete::tag_no_case, combinator::map, sequence::preceded, IResult};
+use crate::common::{take_until_crlf, take_until_crlf_consume_crlf, take_until_sp};
+use crate::types::command::{Apop, Pass, User};
+use nom::{
+    bytes::complete::tag, bytes::complete::tag_no_case, combinator::map, sequence::delimited,
+    sequence::preceded, sequence::separated_pair, IResult,
+};
 
 // ################################################################################
 /// USER name
@@ -48,6 +51,35 @@ pub(crate) fn pass_parser(s: &[u8]) -> IResult<&[u8], Pass> {
     )(s)
 }
 
+// ################################################################################
+/// APOP name digest
+/// Arguments:
+///     a string identifying a mailbox and a MD5 digest string
+///     (both required)
+/// Restrictions:
+///     may only be given in the AUTHORIZATION state after the POP3
+///     greeting or after an unsuccessful USER or PASS command
+/// Examples:
+///     C: APOP mrose c4c9334bac560ecc979e58001b3e22fb
+// ################################################################################
+pub fn apop(s: &[u8]) -> Option<Apop> {
+    match apop_parser(s) {
+        Ok((_, x)) => Some(x),
+        Err(_) => None,
+    }
+}
+
+pub(crate) fn apop_parser(s: &[u8]) -> IResult<&[u8], Apop> {
+    map(
+        delimited(
+            tag_no_case(b"APOP "),
+            separated_pair(take_until_sp, tag(b" "), take_until_crlf),
+            tag(b"\r\n"),
+        ),
+        |(x, y)| Apop { name: x, digest: y },
+    )(s)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -60,5 +92,16 @@ mod tests {
     #[test]
     fn test_pass() {
         assert_eq!(pass(b"PASS pwd\r\n").unwrap(), Pass { string: b"pwd" })
+    }
+
+    #[test]
+    fn test_apop() {
+        assert_eq!(
+            apop(b"APOP mrose c4c9334bac560ecc979e58001b3e22fb\r\n").unwrap(),
+            Apop {
+                name: b"mrose",
+                digest: b"c4c9334bac560ecc979e58001b3e22fb"
+            }
+        )
     }
 }

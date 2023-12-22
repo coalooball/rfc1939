@@ -104,6 +104,30 @@ pub(crate) fn pass_parser(s: &[u8]) -> IResult<&[u8], Pass> {
     one_line_response_two_parts_parser::<Pass>(s)
 }
 
+// ################################################################################
+/// APOP name digest
+/// Restrictions:
+///     may only be given in the AUTHORIZATION state after the POP3
+///     greeting or after an unsuccessful USER or PASS command
+/// Possible Responses:
+///     +OK maildrop locked and ready
+///     -ERR permission denied
+/// Examples:
+///     S: +OK POP3 server ready <1896.697170952@dbc.mtview.ca.us>
+///     C: APOP mrose c4c9334bac560ecc979e58001b3e22fb
+///     S: +OK maildrop has 1 message (369 octets)
+// ################################################################################
+pub fn apop(s: &[u8]) -> Option<Apop> {
+    match apop_parser(s) {
+        Ok((_, x)) => Some(x),
+        Err(_) => None,
+    }
+}
+
+pub(crate) fn apop_parser(s: &[u8]) -> IResult<&[u8], Apop> {
+    one_line_response_two_parts_parser::<Apop>(s)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -159,6 +183,17 @@ mod tests {
             Pass {
                 status_indicator: StatusIndicator::OK,
                 message: b"successfully"
+            }
+        )
+    }
+
+    #[test]
+    fn test_apop() {
+        assert_eq!(
+            apop(b"+OK maildrop has 1 message (369 octets)\r\n").unwrap(),
+            Apop {
+                status_indicator: StatusIndicator::OK,
+                message: b"maildrop has 1 message (369 octets)"
             }
         )
     }

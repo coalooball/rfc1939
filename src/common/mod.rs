@@ -23,6 +23,10 @@ pub(crate) fn take_until_crlf(s: &[u8]) -> IResult<&[u8], &[u8]> {
     take_until("\r\n")(s)
 }
 
+pub(crate) fn take_until_sp(s: &[u8]) -> IResult<&[u8], &[u8]> {
+    take_until(" ")(s)
+}
+
 /// A parser parses one line response which only have two parts
 /// in which status indicator and messages exist.
 pub(crate) fn one_line_response_two_parts_parser<'a, T: OneLine<'a> + Default>(

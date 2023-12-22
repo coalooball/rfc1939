@@ -53,3 +53,11 @@ pub struct User<'a> {
 pub struct Pass<'a> {
     pub string: &'a [u8],
 }
+
+/// A string identifying a mailbox (required)
+/// A MD5 digest string (required)
+#[derive(Debug, PartialEq)]
+pub struct Apop<'a> {
+    pub name: &'a [u8],
+    pub digest: &'a [u8],
+}
